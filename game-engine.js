@@ -73,6 +73,7 @@ const state = {
       impostorBadge: document.getElementById('impostorBadge'),
       goVotingBtn: document.getElementById('goVotingBtn'),
       pauseTimerBtn: document.getElementById('pauseTimerBtn'),
+      abortGameBtn: document.getElementById('abortGameBtn'),
       voteGrid: document.getElementById('voteGrid'),
       confirmVoteBtn: document.getElementById('confirmVoteBtn'),
       skipVoteBtn: document.getElementById('skipVoteBtn'),
@@ -617,6 +618,7 @@ window.engine = engine;
     el.abortToConfigBtn.addEventListener('click', () => engine.restart(true))
     el.goVotingBtn.addEventListener('click', () => engine.openVoting())
     el.pauseTimerBtn.addEventListener('click', () => engine.pauseTimer())
+    el.abortGameBtn.addEventListener('click', () => engine.restart(true))
     el.confirmVoteBtn.addEventListener('click', () => engine.confirmVote(false))
     el.skipVoteBtn.addEventListener('click', () => engine.confirmVote(true))
     el.playAgainBtn.addEventListener('click', () => engine.restart(true))
