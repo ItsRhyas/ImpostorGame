@@ -83,7 +83,10 @@ const state = {
       resultDetails: document.getElementById('resultDetails'),
       resultVoteInfo: document.getElementById('resultVoteInfo'),
       playAgainBtn: document.getElementById('playAgainBtn'),
-      backToConfigBtn: document.getElementById('backToConfigBtn')
+      backToConfigBtn: document.getElementById('backToConfigBtn'),
+      header: document.querySelector('header'),
+      hero: document.querySelector('.hero'),
+      footer: document.querySelector('footer')
     }
 
     class GameEngine {
@@ -138,6 +141,10 @@ const state = {
         state.phase = phase
         Object.values(el.views).forEach(view => view.classList.remove('active'))
         el.views[phase].classList.add('active')
+        const isConfig = phase === 'config';
+        if(el.header) el.header.style.display = isConfig ? '' : 'none';
+        if(el.hero) el.hero.style.display = isConfig ? '' : 'none';
+        if(el.footer) el.footer.style.display = isConfig ? '' : 'none';
       }
 
       renderPlayers() {
