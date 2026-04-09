@@ -73,21 +73,19 @@
           <span class="badge" id="revealCounter">0 / 0</span>
         </div>
 
-        <div class="reveal-card">
-          <div class="role-box">
-            <h3 id="revealPlayerName">Jugador</h3>
-            <div id="roleCardDisplay"></div>
-            <div class="hold-zone" id="holdZone">
-              <div>
-                <div class="badge warn">Mantén presionado</div>
-                <p class="small">Usa presión prolongada para mostrar el rol sin exponerlo al resto.</p>
-              </div>
+        <div class="reveal-content">
+          <div class="reveal-card">
+            <div class="role-box">
+              <h3 id="revealPlayerName">Jugador</h3>
+              <div id="roleCardDisplay"></div>
             </div>
           </div>
-          <div class="row">
-            <button id="nextRevealBtn" class="btn secondary" type="button" disabled>Siguiente jugador</button>
-            <button id="abortToConfigBtn" class="btn ghost" type="button">Volver a configuración</button>
-          </div>
+          <button id="holdZone" class="hold-btn" type="button">Mantén presionado para revelar</button>
+        </div>
+
+        <div class="row">
+          <button id="nextRevealBtn" class="btn secondary" type="button" disabled>Siguiente jugador</button>
+          <button id="abortToConfigBtn" class="btn ghost" type="button">Volver a configuración</button>
         </div>
       </section>
 

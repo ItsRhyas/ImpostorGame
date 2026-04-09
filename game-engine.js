@@ -252,12 +252,8 @@ const state = {
         el.revealPlayerName.textContent = player ? player.name : 'Todos listos'
         el.nextRevealBtn.disabled = true
         el.roleCardDisplay.innerHTML = ''
-        el.holdZone.innerHTML = `
-          <div>
-            <div class="badge warn">Mantén presionado</div>
-            <p class="small">Cuando reveles, verás tu rol solo durante esta sesión.</p>
-          </div>
-        `
+        el.holdZone.textContent = 'Mantén presionado para revelar'
+        el.holdZone.classList.remove('revealed')
         el.revealIntro.textContent = player
           ? `Turno de ${player.name}. Mantén presionado para ver su rol.`
           : 'Toda la mesa ya vio su rol.'
@@ -280,13 +276,8 @@ const state = {
             <p class="small">${isImpostor ? 'Solo una pista. No digas nada.' : 'Tu misión: proteger la palabra.'}</p>
           </div>
         `
-        el.holdZone.classList.add('active')
-        el.holdZone.innerHTML = `
-          <div>
-            <div class="badge ok">Rol revelado</div>
-            <p class="small">Ya puedes dejar de presionar.</p>
-          </div>
-        `
+        el.holdZone.classList.add('revealed')
+        el.holdZone.textContent = 'Soltar para ocultar'
         el.nextRevealBtn.disabled = false
         pulse()
         this.validateRevealProgress()
@@ -548,26 +539,16 @@ window.engine = engine;
     function stopHold() {
       holding = false
       clearTimeout(holdTimer)
-      el.holdZone.classList.remove('active')
+      el.holdZone.classList.remove('revealed')
       el.roleCardDisplay.innerHTML = ''
       // Hide the secret info when releasing, but keep "Next player" button enabled
       const player = state.roles[state.revealIndex]
       if (player && player.viewed) {
         // Player already viewed their role - show hidden message
-        el.holdZone.innerHTML = `
-          <div>
-            <div class="badge ok">Rol ocultado</div>
-            <p class="small">Ya viste tu rol. Presiona "Siguiente jugador" para continuar.</p>
-          </div>
-        `
+        el.holdZone.textContent = 'Ya viste tu rol. Presiona "Siguiente jugador" para continuar.'
       } else if (player) {
         // Player never completed the hold - restore original message
-        el.holdZone.innerHTML = `
-          <div>
-            <div class="badge warn">Mantén presionado</div>
-            <p class="small">Cuando reveles, verás tu rol solo durante esta sesión.</p>
-          </div>
-        `
+        el.holdZone.textContent = 'Mantén presionado para revelar'
       }
     }
 
@@ -623,7 +604,7 @@ window.engine = engine;
       event.preventDefault()
       if (holding) return
       holding = true
-      el.holdZone.classList.add('active')
+      el.holdZone.classList.add('revealed')
       holdTimer = setTimeout(() => {
         if (!holding) return
         engine.revealCurrentPlayer()
