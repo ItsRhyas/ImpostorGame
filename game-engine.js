@@ -1,7 +1,7 @@
 import { CONCEPTS } from './data.js';
 
 const STORAGE_KEY = 'impostor-game-save-v1';
-const HOLD_MS = 650;
+const HOLD_MS = 0;
 const INTRO_SECONDS = 30;
 
 while (CONCEPTS.length < 200) {
@@ -63,6 +63,7 @@ const state = {
       revealCounter: document.getElementById('revealCounter'),
       revealPlayerName: document.getElementById('revealPlayerName'),
       holdZone: document.getElementById('holdZone'),
+      roleCardDisplay: document.getElementById('roleCardDisplay'),
       nextRevealBtn: document.getElementById('nextRevealBtn'),
       abortToConfigBtn: document.getElementById('abortToConfigBtn'),
       gamePhaseNotice: document.getElementById('gamePhaseNotice'),
@@ -250,7 +251,7 @@ const state = {
         el.revealCounter.textContent = `${state.revealIndex + 1} / ${state.roles.length}`
         el.revealPlayerName.textContent = player ? player.name : 'Todos listos'
         el.nextRevealBtn.disabled = true
-        el.holdZone.classList.remove('active')
+        el.roleCardDisplay.innerHTML = ''
         el.holdZone.innerHTML = `
           <div>
             <div class="badge warn">Mantén presionado</div>
@@ -271,13 +272,19 @@ const state = {
           state.viewedCount += 1
         }
         const isImpostor = player.role === 'impostor'
-        el.holdZone.classList.add('active')
-        el.holdZone.innerHTML = `
+        el.roleCardDisplay.innerHTML = `
           <div class="role-box" style="width:100%;margin:0">
             <div class="badge ${isImpostor ? 'warn' : 'ok'}">${isImpostor ? 'Impostor' : 'Civil'}</div>
             <div class="role-big ${isImpostor ? 'impostor' : 'civil'}">${isImpostor ? 'PISTA' : 'PALABRA'}</div>
             <h3>${isImpostor ? player.clue : state.concept.word}</h3>
             <p class="small">${isImpostor ? 'Solo una pista. No digas nada.' : 'Tu misión: proteger la palabra.'}</p>
+          </div>
+        `
+        el.holdZone.classList.add('active')
+        el.holdZone.innerHTML = `
+          <div>
+            <div class="badge ok">Rol revelado</div>
+            <p class="small">Ya puedes dejar de presionar.</p>
           </div>
         `
         el.nextRevealBtn.disabled = false
@@ -442,7 +449,8 @@ const state = {
         state.winner = winner
         this.setPhase('results')
         const civils = state.roles.filter(p => p.role === 'civil').length
-        const impostors = state.roles.filter(p => p.role === 'impostor').length
+        const impostors = state.roles.filter(p => p.role === 'impostor')
+        const impostorNames = impostors.map(p => p.name).join(', ')
         const alive = state.roles.filter(p => p.alive)
         el.winnerBadge.className = `badge ${winner === 'civil' ? 'ok' : 'danger'}`
         el.winnerBadge.textContent = winner === 'civil' ? 'Victoria civil' : 'Victoria impostora'
@@ -451,8 +459,9 @@ const state = {
         el.resultMessage.textContent = reason
         el.resultDetails.innerHTML = `
           <strong>Concepto:</strong> ${escapeHtml(state.concept.word)}<br>
+          <strong>Impostor${impostors.length > 1 ? 'es' : ''}:</strong> ${impostorNames}<br>
           <strong>Jugadores vivos:</strong> ${alive.map(p => p.name).join(', ') || 'Ninguno'}<br>
-          <strong>Civiles:</strong> ${civils} · <strong>Impostores:</strong> ${impostors}
+          <strong>Civiles:</strong> ${civils} · <strong>Impostores:</strong> ${impostors.length}
         `
         el.resultVoteInfo.textContent = state.voteResultId ? `Última expulsión: ${this.playerNameById(state.voteResultId)}` : 'No hubo expulsión final.'
         pulse(40)
@@ -540,6 +549,7 @@ window.engine = engine;
       holding = false
       clearTimeout(holdTimer)
       el.holdZone.classList.remove('active')
+      el.roleCardDisplay.innerHTML = ''
       // Hide the secret info when releasing, but keep "Next player" button enabled
       const player = state.roles[state.revealIndex]
       if (player && player.viewed) {
