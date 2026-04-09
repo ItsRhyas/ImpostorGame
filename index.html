@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>El Impostor</title>
+  <style>
+    :root{
+      color-scheme: dark;
+      --bg:#0b1020;
+      --panel:#121a31;
+      --panel-2:#172042;
+      --text:#eef2ff;
+      --muted:#a8b3d6;
+      --accent:#7c8cff;
+      --accent-2:#2ee6a6;
+      --danger:#ff6b6b;
+      --warning:#ffc857;
+      --ok:#4ade80;
+      --shadow:0 12px 30px rgba(0,0,0,.28);
+      --radius:18px;
+      --radius-sm:12px;
+      --gap:1rem;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial,sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(124,140,255,.15), transparent 28%),
+        linear-gradient(180deg, #090d18 0%, var(--bg) 100%);
+      color:var(--text);
+    }
+    button,input,select{font:inherit}
+    .app{
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+    header,footer{
+      padding:1rem;
+      text-align:center;
+      position:sticky;
+      z-index:5;
+      backdrop-filter: blur(10px);
+      background:rgba(9,13,24,.6);
+    }
+    header{top:0;border-bottom:1px solid rgba(255,255,255,.06)}
+    footer{bottom:0;border-top:1px solid rgba(255,255,255,.06); color:var(--muted)}
+    main{
+      flex:1;
+      width:min(980px,100%);
+      margin:0 auto;
+      padding:1rem;
+      display:grid;
+      gap:1rem;
+    }
+    .hero,
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .hero{padding:1rem}
+    .hero h1{margin:.2rem 0 .4rem; font-size:clamp(1.7rem, 6vw, 3rem)}
+    .hero p{margin:0;color:var(--muted);line-height:1.5}
+    .grid{display:grid;gap:var(--gap)}
+    .two{grid-template-columns:1fr}
+    @media (min-width:820px){.two{grid-template-columns:1.1fr .9fr}}
+    .panel{padding:1rem}
+    .panel h2,.panel h3{margin:.2rem 0 .75rem}
+    .hint{color:var(--muted);font-size:.95rem;line-height:1.45}
+    .row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+    .stack{display:grid;gap:.75rem}
+    .field{
+      display:grid;
+      gap:.35rem;
+    }
+    label{font-weight:600}
+    input[type="text"], input[type="number"], select{
+      width:100%;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.09);
+      background:rgba(10,14,27,.75);
+      color:var(--text);
+      padding:.85rem 1rem;
+      outline:none;
+    }
+    input[type="range"]{width:100%}
+    .btn{
+      border:none;
+      border-radius:14px;
+      padding:.85rem 1rem;
+      color:#08101f;
+      background:linear-gradient(135deg, var(--accent), #9ba5ff);
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 10px 20px rgba(124,140,255,.2);
+      transition:transform .15s ease, filter .15s ease, opacity .15s ease;
+      touch-action:manipulation;
+    }
+    .btn:active{transform:translateY(1px) scale(.99)}
+    .btn.secondary{background:linear-gradient(135deg,#26304f,#3a4b7d);color:var(--text)}
+    .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.12);box-shadow:none}
+    .btn.danger{background:linear-gradient(135deg,#ff7a7a,#ffb0b0)}
+    .btn.ok{background:linear-gradient(135deg,#3ee69c,#8dffca)}
+    .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none}
+    .players{display:grid;gap:.6rem}
+    .player-item{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:.5rem;
+      align-items:center;
+      padding:.7rem;
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .player-item .mini{display:flex;gap:.45rem;align-items:center}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      padding:.35rem .65rem;
+      border-radius:999px;
+      background:rgba(124,140,255,.14);
+      color:#d9ddff;
+      border:1px solid rgba(124,140,255,.22);
+      font-size:.82rem;
+      white-space:nowrap;
+    }
+    .badge.ok{background:rgba(46,230,166,.14);border-color:rgba(46,230,166,.25)}
+    .badge.warn{background:rgba(255,200,87,.14);border-color:rgba(255,200,87,.25)}
+    .badge.danger{background:rgba(255,107,107,.14);border-color:rgba(255,107,107,.25)}
+    .notice{
+      border-radius:14px;
+      padding:.9rem 1rem;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.07);
+      color:var(--muted);
+    }
+    .notice strong{color:var(--text)}
+    .view{display:none}
+    .view.active{display:grid}
+    .reveal-card,
+    .result-card{
+      display:grid;
+      gap:1rem;
+      justify-items:center;
+      text-align:center;
+      padding:1.25rem;
+      min-height:320px;
+      align-content:center;
+      background:radial-gradient(circle at top, rgba(124,140,255,.17), transparent 50%), rgba(255,255,255,.03);
+      border-radius:var(--radius);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .role-box{
+      width:min(100%, 440px);
+      padding:1rem;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(10,14,27,.62);
+    }
+    .role-box h3{margin:.15rem 0 .5rem;font-size:1.1rem}
+    .role-big{font-size:clamp(1.4rem, 5vw, 2.6rem); font-weight:900; margin:.2rem 0}
+    .role-big.civil{color:var(--ok)}
+    .role-big.impostor{color:var(--warning)}
+    .hold-zone{
+      width:min(100%, 440px);
+      min-height:180px;
+      display:grid;
+      place-items:center;
+      border-radius:20px;
+      border:2px dashed rgba(255,255,255,.14);
+      background:rgba(255,255,255,.02);
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:none;
+      padding:1rem;
+    }
+    .hold-zone.active{border-color:rgba(124,140,255,.55); background:rgba(124,140,255,.1)}
+    .timer-ring{
+      width:112px;height:112px;border-radius:50%;
+      display:grid;place-items:center;
+      border:8px solid rgba(255,255,255,.1);
+      background:conic-gradient(var(--accent) var(--progress,0%), rgba(255,255,255,.08) 0);
+      box-shadow:inset 0 0 0 8px rgba(9,13,24,.65);
+      font-weight:900;
+      font-size:1.2rem;
+    }
+    .timer-meta{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+    .player-chip{
+      border:none;
+      border-radius:999px;
+      padding:.65rem .9rem;
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .player-chip.selected{background:rgba(124,140,255,.25);border-color:rgba(124,140,255,.5)}
+    .hidden{display:none !important}
+    .small{font-size:.9rem;color:var(--muted)}
+    .split{display:grid;gap:1rem}
+    @media (min-width:720px){.split{grid-template-columns:1fr 1fr}}
+    .vote-grid{display:grid;gap:.6rem}
+    .summary-grid{display:grid;gap:.75rem}
+    .list{margin:0;padding-left:1.2rem;color:var(--muted)}
+    .divider{height:1px;background:rgba(255,255,255,.08);margin:.5rem 0}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <strong>El Impostor</strong>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h1>El Impostor</h1>
+        <p>Juego pass-and-play para un solo dispositivo. Configura, revela roles con privacidad, juega contra el tiempo y vota al sospechoso.</p>
+      </section>
+
+      <section id="view-config" class="view active grid two">
+        <div class="panel stack">
+          <h2>Configuración</h2>
+          <div class="field">
+            <label for="playerName">Agregar jugador</label>
+            <div class="row">
+              <input id="playerName" type="text" placeholder="Nombre del jugador" maxlength="18" />
+              <button id="addPlayerBtn" class="btn" type="button">Añadir</button>
+            </div>
+          </div>
+
+          <div class="players" id="playersList"></div>
+
+          <div class="split">
+            <div class="field">
+              <label for="gameMinutes">Tiempo de partida: <span id="gameMinutesLabel">5</span> min</label>
+              <input id="gameMinutes" type="range" min="1" max="10" value="5" />
+            </div>
+            <div class="field">
+              <label for="impostorsCount">Impostores</label>
+              <select id="impostorsCount"></select>
+            </div>
+          </div>
+
+          <div class="notice" id="configNotice">Mínimo 3 jugadores. Para tener impostores, necesitas al menos 4.</div>
+
+          <div class="row">
+            <button id="startGameBtn" class="btn ok" type="button">Comenzar partida</button>
+            <button id="resetStorageBtn" class="btn ghost" type="button">Limpiar guardado</button>
+          </div>
+        </div>
+
+        <div class="panel stack">
+          <h2>Resumen</h2>
+          <div class="notice">
+            <strong>Flujo:</strong> CONFIG → REVEAL → GAME/TIMER → VOTING → RESULTS
+          </div>
+          <div class="notice">
+            <strong>Privacidad:</strong> Mantén presionado para ver tu rol en cada turno.
+          </div>
+          <div class="notice">
+            <strong>Victoria:</strong> Civiles ganan si expulsan a todos los impostores. Impostores ganan si el tiempo se agota o igualan en número a los civiles.
+          </div>
+        </div>
+      </section>
+
+      <section id="view-reveal" class="view panel stack">
+        <div class="row" style="justify-content:space-between;align-items:flex-start">
+          <div>
+            <h2>Revelación de rol</h2>
+            <p class="hint" id="revealIntro">Entrega el dispositivo al jugador indicado y mantén presionado para revelar su información.</p>
+          </div>
+          <span class="badge" id="revealCounter">0 / 0</span>
+        </div>
+
+        <div class="reveal-card">
+          <div class="role-box">
+            <h3 id="revealPlayerName">Jugador</h3>
+            <div class="hold-zone" id="holdZone">
+              <div>
+                <div class="badge warn">Mantén presionado</div>
+                <p class="small">Usa presión prolongada para mostrar el rol sin exponerlo al resto.</p>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <button id="nextRevealBtn" class="btn secondary" type="button" disabled>Siguiente jugador</button>
+            <button id="abortToConfigBtn" class="btn ghost" type="button">Volver a configuración</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-game" class="view panel stack">
+        <div class="split">
+          <div class="stack">
+            <h2>Partida</h2>
+            <div class="notice" id="gamePhaseNotice">Preparando partida...</div>
+            <div class="timer-ring" id="timerRing">--:--</div>
+            <div class="timer-meta">
+              <span class="badge" id="startingPlayerBadge">Jugador inicial: -</span>
+              <span class="badge ok" id="aliveBadge">Vivos: -</span>
+              <span class="badge danger" id="impostorBadge">Impostores: -</span>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="notice">
+              <strong>Concepto:</strong> <span id="currentConceptWord">-</span>
+            </div>
+            <div class="notice">
+              <strong>Pista activa:</strong>
+              <div id="currentClue" class="small">-</div>
+            </div>
+            <div class="row">
+              <button id="goVotingBtn" class="btn" type="button">Ir a votación</button>
+              <button id="pauseTimerBtn" class="btn secondary" type="button">Pausar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-voting" class="view panel stack">
+        <h2>Votación</h2>
+        <p class="hint">Elige al jugador que quieres expulsar. Si aciertas y expulsas al último impostor, gana el equipo civil.</p>
+        <div class="vote-grid" id="voteGrid"></div>
+        <div class="row">
+          <button id="confirmVoteBtn" class="btn ok" type="button" disabled>Confirmar voto</button>
+          <button id="skipVoteBtn" class="btn secondary" type="button">Terminar sin votar</button>
+        </div>
+      </section>
+
+      <section id="view-results" class="view panel stack">
+        <div class="result-card">
+          <div class="badge" id="winnerBadge">Resultado</div>
+          <div>
+            <div class="role-big" id="resultTitle">—</div>
+            <p class="hint" id="resultMessage">—</p>
+          </div>
+          <div class="summary-grid">
+            <div class="notice" id="resultDetails">—</div>
+            <div class="notice small" id="resultVoteInfo">—</div>
+          </div>
+          <div class="row">
+            <button id="playAgainBtn" class="btn ok" type="button">Jugar de nuevo</button>
+            <button id="backToConfigBtn" class="btn ghost" type="button">Volver a configuración</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>Desarrollado por Itsrhyas</footer>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'impostor-game-save-v1'
+    const HOLD_MS = 650
+    const INTRO_SECONDS = 30
+
+    const CONCEPTS = [
+      { word: 'Pizza', clues: ['Tiene masa y queso', 'Se corta en porciones', 'Suele hornearse con tomate'] },
+      { word: 'Avión', clues: ['Viaja por el aire', 'Usa pista de despegue', 'Tiene alas y turbinas'] },
+      { word: 'Biblioteca', clues: ['Guarda muchos libros', 'Pide silencio', 'Tiene estanterías'] },
+      { word: 'Volcán', clues: ['Expulsa lava', 'Puede hacer erupción', 'Está ligado al magma'] },
+      { word: 'Teléfono', clues: ['Sirve para llamar', 'Tiene pantalla y apps', 'Casi siempre va con batería'] },
+      { word: 'Guitarra', clues: ['Tiene cuerdas', 'Se toca con dedos o púa', 'Produce acordes'] },
+      { word: 'Camaleón', clues: ['Cambia de color', 'Tiene lengua larga', 'Es un reptil'] },
+      { word: 'Hospital', clues: ['Atienden pacientes', 'Hay médicos y enfermeras', 'Se usa en emergencias'] },
+      { word: 'Catedral', clues: ['Es un templo grande', 'Tiene arquitectura histórica', 'Suele tener torres'] },
+      { word: 'Satélite', clues: ['Orbitan un planeta', 'Puede ser artificial', 'Se usa para comunicación'] },
+      { word: 'Bicicleta', clues: ['Tiene dos ruedas', 'Se impulsa con pedales', 'No usa combustible'] },
+      { word: 'Teclado', clues: ['Tiene muchas teclas', 'Se conecta a una computadora', 'Sirve para escribir'] },
+      { word: 'Océano', clues: ['Cubre gran parte del planeta', 'Tiene agua salada', 'Vive mucha fauna marina'] },
+      { word: 'Bosque', clues: ['Hay muchos árboles', 'Conviven animales y plantas', 'Da sombra y oxígeno'] },
+      { word: 'Faro', clues: ['Guía barcos de noche', 'Emite una luz potente', 'Está cerca del mar'] },
+      { word: 'Cine', clues: ['Se ven películas allí', 'Hay butacas y pantalla gigante', 'Se compra entrada'] },
+      { word: 'Robot', clues: ['Puede automatizar tareas', 'A veces tiene sensores', 'No siempre es humanoide'] },
+      { word: 'Isla', clues: ['Está rodeada de agua', 'Puede ser turística', 'No pertenece a un continente'] },
+      { word: 'Reloj', clues: ['Marca el tiempo', 'Puede ir en la muñeca', 'Tiene agujas o display'] },
+      { word: 'Jirafa', clues: ['Tiene cuello largo', 'Es un animal alto', 'Come hojas de árboles'] },
+      { word: 'Café', clues: ['Es una bebida', 'Proviene de granos tostados', 'Suele tener cafeína'] },
+      { word: 'Helado', clues: ['Es frío y dulce', 'Se derrite rápido', 'Puede tener cono'] },
+      { word: 'Martillo', clues: ['Sirve para golpear', 'Es una herramienta', 'Se usa con clavos'] },
+      { word: 'Sombrero', clues: ['Se coloca en la cabeza', 'Puede proteger del sol', 'También es accesorio de moda'] },
+      { word: 'Puente', clues: ['Une dos lados', 'Cruza ríos o carreteras', 'Puede ser peatonal'] },
+      { word: 'Mochila', clues: ['Sirve para llevar cosas', 'Se usa en espalda', 'Tiene correas'] },
+      { word: 'Nube', clues: ['Está en el cielo', 'Puede traer lluvia', 'A veces parece algodón'] },
+      { word: 'Tormenta', clues: ['Trae truenos y lluvia', 'Puede ser muy intensa', 'Afecta el clima'] },
+      { word: 'Mercado', clues: ['Se compran alimentos', 'Hay puestos y vendedores', 'Suele ser muy concurrido'] },
+      { word: 'Museo', clues: ['Muestra obras o piezas', 'Tiene salas de exposición', 'Se aprende historia allí'] },
+      { word: 'Cocina', clues: ['Se preparan alimentos', 'Tiene fogón o estufa', 'Hay ollas y utensilios'] },
+      { word: 'Estadio', clues: ['Recibe partidos', 'Tiene gradas', 'Aloja a muchos espectadores'] },
+      { word: 'Balón', clues: ['Se usa en deportes', 'Es redondo', 'Puede botar o rodar'] },
+      { word: 'Delfín', clues: ['Vive en el mar', 'Es muy inteligente', 'Nada en grupo'] },
+      { word: 'Tigre', clues: ['Es un felino', 'Tiene rayas', 'Es un gran depredador'] },
+      { word: 'Elefante', clues: ['Es enorme', 'Tiene trompa', 'Es herbívoro'] },
+      { word: 'Lámpara', clues: ['Da luz', 'Puede estar en una mesa', 'Funciona con electricidad'] },
+      { word: 'Ventana', clues: ['Deja entrar luz', 'Permite mirar afuera', 'Está en paredes'] },
+      { word: 'Puerta', clues: ['Permite entrar o salir', 'Se abre y se cierra', 'Tiene manija'] },
+      { word: 'Silla', clues: ['Sirve para sentarse', 'Tiene patas y respaldo', 'Es un mueble'] },
+      { word: 'Mesa', clues: ['Tiene superficie plana', 'Sirve para comer o trabajar', 'Puede tener patas'] },
+      { word: 'Barco', clues: ['Navega en agua', 'Puede transportar personas', 'Tiene cubierta'] },
+      { word: 'Tren', clues: ['Va por rieles', 'Lleva muchos pasajeros', 'Puede tener vagones'] },
+      { word: 'Carretera', clues: ['Conecta ciudades', 'Circulan vehículos', 'A veces tiene peajes'] },
+      { word: 'Semáforo', clues: ['Regula el tráfico', 'Tiene luces de colores', 'Se ve en cruces'] },
+      { word: 'Sierra', clues: ['Tiene dientes y corta', 'También puede ser una montaña', 'Se usa en carpintería'] },
+      { word: 'Aguacate', clues: ['Es una fruta verde', 'Tiene una semilla grande', 'Se usa en guacamole'] },
+      { word: 'Sandía', clues: ['Es grande y jugosa', 'Tiene pulpa roja', 'Tiene muchas semillas'] },
+      { word: 'Manzana', clues: ['Es una fruta común', 'Puede ser roja o verde', 'Aparece en postres'] },
+      { word: 'Zanahoria', clues: ['Es una raíz naranja', 'Crece bajo tierra', 'Se come cruda o cocida'] },
+      { word: 'Piano', clues: ['Tiene teclas', 'Produce música al presionar', 'Se usa en conciertos'] },
+      { word: 'Batería', clues: ['Marca el ritmo', 'Tiene tambores y platillos', 'Es parte de una banda'] },
+      { word: 'Microscopio', clues: ['Amplía objetos pequeños', 'Se usa en laboratorios', 'Tiene lentes'] },
+      { word: 'Telescopio', clues: ['Observa el cielo', 'Acerca objetos lejanos', 'Se usa en astronomía'] },
+      { word: 'Mapa', clues: ['Representa lugares', 'Muestra rutas y territorios', 'Ayuda a orientarse'] },
+      { word: 'Brújula', clues: ['Sirve para orientarse', 'Apunta al norte', 'Tiene aguja magnética'] },
+      { word: 'Parque', clues: ['Hay árboles y bancos', 'Se pasea o descansa', 'A veces tiene juegos'] },
+      { word: 'Playa', clues: ['Tiene arena', 'Está junto al mar', 'Se puede tomar el sol'] },
+      { word: 'Montaña', clues: ['Es alta', 'Puede tener nieve', 'Se escala o se observa'] },
+      { word: 'Desierto', clues: ['Hace mucho calor', 'Hay poca agua', 'Tiene arena y dunas'] },
+      { word: 'Luna', clues: ['Acompaña a la Tierra', 'Brilla por la noche', 'Tiene fases'] },
+      { word: 'Sol', clues: ['Da luz y calor', 'Es una estrella', 'Está en el centro del sistema'] },
+      { word: 'Estrella', clues: ['Brilla en el espacio', 'Se ve de noche', 'Puede formar constelaciones'] },
+      { word: 'Computadora', clues: ['Procesa información', 'Tiene teclado y pantalla', 'Se usa para trabajar o jugar'] },
+      { word: 'Navegador', clues: ['Abre páginas web', 'Permite navegar Internet', 'Tiene pestañas'] },
+      { word: 'Servidor', clues: ['Responde peticiones', 'Puede alojar apps', 'Está en red'] },
+      { word: 'Algoritmo', clues: ['Resuelve pasos ordenados', 'Es base de programación', 'Puede automatizar decisiones'] },
+      { word: 'Código', clues: ['Se escribe para programar', 'Puede tener sintaxis', 'Da instrucciones a una máquina'] },
+      { word: 'Aplicación', clues: ['Resuelve tareas', 'Puede instalarse en el móvil', 'Se abre con un ícono'] },
+      { word: 'Pantalla', clues: ['Muestra imágenes', 'Puede ser táctil', 'Está en muchos dispositivos'] },
+      { word: 'Ratón', clues: ['Controla el puntero', 'Tiene botones', 'Se mueve sobre una superficie'] },
+      { word: 'Disco', clues: ['Es circular', 'Puede almacenar música o datos', 'Gira en algunos equipos'] },
+      { word: 'Libro', clues: ['Tiene páginas', 'Se lee con atención', 'Puede ser novela o manual'] },
+      { word: 'Cuaderno', clues: ['Sirve para escribir', 'Tiene hojas', 'Se usa en clases'] },
+      { word: 'Lápiz', clues: ['Escribe o dibuja', 'Tiene punta de grafito', 'Se puede borrar'] },
+      { word: 'Borrador', clues: ['Elimina trazos', 'Se usa con lápiz', 'Suele ser de goma'] },
+      { word: 'Escuela', clues: ['Se aprende allí', 'Hay aulas y profesores', 'Recibe estudiantes'] },
+      { word: 'Universidad', clues: ['Es educación superior', 'Tiene facultades', 'Forma profesionales'] },
+      { word: 'Profesor', clues: ['Enseña a otros', 'Explica contenidos', 'Trabaja en aulas'] },
+      { word: 'Estudiante', clues: ['Aprende y practica', 'Asiste a clases', 'Puede tener tareas'] },
+      { word: 'Doctor', clues: ['Cuida la salud', 'Trabaja en hospital', 'Hace diagnósticos'] },
+      { word: 'Enfermera', clues: ['Asiste a pacientes', 'Trabaja con médicos', 'Da cuidados'] },
+      { word: 'Policía', clues: ['Cuida el orden', 'Puede usar patrulla', 'Investiga incidentes'] },
+      { word: 'Bombero', clues: ['Apaga incendios', 'Usa manguera', 'Responde emergencias'] },
+      { word: 'Árbol', clues: ['Tiene tronco y hojas', 'Da sombra', 'Puede dar fruto'] },
+      { word: 'Flor', clues: ['Es decorativa', 'Tiene pétalos', 'Suele oler bien'] },
+      { word: 'Hierba', clues: ['Cubre el suelo', 'Es verde', 'Puede crecer en prados'] },
+      { word: 'Río', clues: ['Lleva agua corriente', 'Cruza paisajes', 'Puede desembocar en el mar'] },
+      { word: 'Lago', clues: ['Es agua quieta', 'Está rodeado de tierra', 'Puede ser muy profundo'] },
+      { word: 'Cascada', clues: ['El agua cae', 'Tiene ruido fuerte', 'Suele verse en montañas'] },
+      { word: 'Puerta giratoria', clues: ['Permite entrar', 'Gira sobre un eje', 'Se ve en edificios modernos'] },
+      { word: 'Aeropuerto', clues: ['Recibe aviones', 'Tiene pistas', 'Hay controles de seguridad'] },
+      { word: 'Puerto', clues: ['Llegan barcos', 'Hay muelles', 'Se cargan mercancías'] },
+      { word: 'Caramelo', clues: ['Es dulce', 'Puede envolver papel', 'Se chupa o mastica'] },
+      { word: 'Chocolate', clues: ['Es un dulce popular', 'Proviene del cacao', 'Puede ser tablet o bebida'] },
+      { word: 'Galleta', clues: ['Es crujiente', 'Se hornea', 'Puede acompañar leche'] },
+      { word: 'Pan', clues: ['Es básico en la mesa', 'Se hornea', 'Puede ser integral'] },
+      { word: 'Queso', clues: ['Se hace con leche', 'Va en muchas recetas', 'Puede ser curado o fresco'] },
+      { word: 'Huevos', clues: ['Son alimento común', 'Vienen de aves', 'Pueden freírse o cocerse'] },
+      { word: 'Arroz', clues: ['Es un cereal', 'Acompaña comidas', 'Se cocina con agua'] },
+      { word: 'Pasta', clues: ['Puede ser italiana', 'Viene en muchas formas', 'Se cuece en agua'] },
+      { word: 'Sopa', clues: ['Se sirve caliente', 'Tiene caldo', 'Puede llevar verduras'] },
+      { word: 'Ensalada', clues: ['Lleva vegetales', 'Suele ser fresca', 'Puede incluir aderezo'] },
+      { word: 'Carne', clues: ['Proviene de animales', 'Se cocina de varias formas', 'Puede ir a la parrilla'] },
+      { word: 'Pescado', clues: ['Vive en agua', 'Es proteína común', 'Se puede freír'] },
+      { word: 'Taxi', clues: ['Transporta personas', 'Se pide en la calle o app', 'Tiene taxímetro'] },
+      { word: 'Autobús', clues: ['Lleva muchos pasajeros', 'Hace paradas', 'También se llama bus'] },
+      { word: 'Moto', clues: ['Tiene dos ruedas', 'Es rápida', 'Usa combustible o electricidad'] },
+      { word: 'Camión', clues: ['Transporta carga', 'Es grande', 'Puede recorrer carreteras largas'] },
+      { word: 'Ambulancia', clues: ['Lleva pacientes urgentes', 'Tiene sirena', 'Se usa en emergencias'] },
+      { word: 'Escudo', clues: ['Protege', 'Puede ser de un equipo', 'También es símbolo'] },
+      { word: 'Corona', clues: ['Va sobre la cabeza', 'Representa realeza', 'Puede tener joyas'] },
+      { word: 'Castillo', clues: ['Tiene torres', 'Es una fortaleza', 'Se asocia con reyes'] },
+      { word: 'Pirámide', clues: ['Tiene base ancha', 'Es una figura histórica', 'Se vincula con Egipto'] },
+      { word: 'Templo', clues: ['Es un lugar sagrado', 'Se usa para culto', 'Puede ser muy antiguo'] },
+      { word: 'Mercurio', clues: ['Es un planeta', 'También es un metal', 'Se relaciona con velocidad'] },
+      { word: 'Júpiter', clues: ['Es un planeta gigante', 'Tiene muchas lunas', 'Es gaseoso'] },
+      { word: 'Marte', clues: ['Es el planeta rojo', 'Tiene polvo y cráteres', 'Se estudia para exploración'] },
+      { word: 'Venus', clues: ['Es muy brillante', 'Es un planeta', 'Tiene atmósfera densa'] },
+      { word: 'Saturno', clues: ['Tiene anillos', 'Es un planeta gigante', 'Es famoso por su aspecto'] },
+      { word: 'Neptuno', clues: ['Es azul y lejano', 'Es un planeta helado', 'Está muy lejos del Sol'] },
+      { word: 'Urano', clues: ['Gira inclinado', 'Es un planeta', 'Tiene tono azulado'] },
+      { word: 'Cometa', clues: ['Cruza el espacio', 'Deja cola brillante', 'Aparece de forma periódica'] },
+      { word: 'Meteorito', clues: ['Llega desde el espacio', 'Puede impactar la Tierra', 'Deja cráteres'] },
+      { word: 'Arena', clues: ['Es granular', 'Abunda en playas y desiertos', 'Se desliza entre los dedos'] },
+      { word: 'Roca', clues: ['Es muy dura', 'Forma montañas', 'Puede ser pequeña o enorme'] },
+      { word: 'Cristal', clues: ['Puede ser transparente', 'Brilla con la luz', 'A veces es frágil'] },
+      { word: 'Espejo', clues: ['Refleja tu imagen', 'Puede estar en baño o pared', 'Usa superficie brillante'] },
+      { word: 'Papel', clues: ['Se escribe sobre él', 'Puede reciclarse', 'Viene en hojas'] },
+      { word: 'Tijeras', clues: ['Sirven para cortar', 'Tienen dos hojas', 'Se usan en manualidades'] },
+      { word: 'Pegamento', clues: ['Une superficies', 'Puede venir en barra o líquido', 'Se usa en trabajos escolares'] },
+      { word: 'Escalera', clues: ['Permite subir', 'Tiene peldaños', 'Puede ser fija o portátil'] },
+      { word: 'Ascensor', clues: ['Sube y baja personas', 'Está en edificios', 'Funciona con botones'] },
+      { word: 'Puente aéreo', clues: ['Conecta ciudades por aire', 'Usa aviones frecuentes', 'Es una ruta rápida'] },
+      { word: 'Arcoíris', clues: ['Aparece con lluvia y sol', 'Tiene varios colores', 'Se ve en el cielo'] },
+      { word: 'Nieve', clues: ['Es agua congelada', 'Cae en invierno', 'Cubre calles y montañas'] },
+      { word: 'Hielo', clues: ['Es agua sólida', 'Está muy frío', 'Se derrite con calor'] },
+      { word: 'Fuego', clues: ['Da calor y luz', 'Puede quemar', 'Se produce por combustión'] },
+      { word: 'Cinta', clues: ['Puede pegar o medir', 'Es flexible', 'A veces se enrolla'] },
+      { word: 'Llave', clues: ['Abre una cerradura', 'Es de metal', 'Protege acceso'] },
+      { word: 'Candado', clues: ['Bloquea acceso', 'Necesita llave o código', 'Sirve para seguridad'] },
+      { word: 'Mapa del tesoro', clues: ['Guía hacia una recompensa', 'Suele tener una X', 'Aparece en aventuras'] },
+      { word: 'Espada', clues: ['Es un arma blanca', 'Tiene hoja larga', 'Se asocia con caballeros'] },
+      { word: 'Armadura', clues: ['Protege el cuerpo', 'Es metálica', 'Se usaba en batallas'] },
+      { word: 'Dragón', clues: ['Es una criatura fantástica', 'Puede escupir fuego', 'Aparece en leyendas'] },
+      { word: 'Hada', clues: ['Es mágica y pequeña', 'Tiene alas', 'Aparece en cuentos'] },
+      { word: 'Gigante', clues: ['Es enorme', 'Aparece en cuentos', 'Supera en tamaño a los demás'] },
+      { word: 'Duende', clues: ['Es un ser legendario', 'Suele ser travieso', 'Aparece en historias fantásticas'] },
+      { word: 'Bibliotecario', clues: ['Trabaja con libros', 'Organiza estantes', 'Ayuda a encontrar lecturas'] },
+      { word: 'Arquitecto', clues: ['Diseña edificios', 'Piensa en planos', 'Combina arte y técnica'] },
+      { word: 'Mecánico', clues: ['Repara vehículos', 'Usa herramientas', 'Conoce motores'] },
+      { word: 'Chef', clues: ['Cocina profesionalmente', 'Diseña platos', 'Trabaja con sabores'] },
+      { word: 'Camarero', clues: ['Sirve comida y bebida', 'Trabaja en restaurantes', 'Toma pedidos'] },
+      { word: 'Pintor', clues: ['Usa brochas o pinceles', 'Crea obras visuales', 'Trabaja con colores'] },
+      { word: 'Escultor', clues: ['Moldea materiales', 'Crea figuras', 'Trabaja en tres dimensiones'] },
+      { word: 'Fotógrafo', clues: ['Captura imágenes', 'Usa cámara', 'Congela momentos'] },
+      { word: 'Periodista', clues: ['Informa noticias', 'Investiga hechos', 'Puede entrevistar'] },
+      { word: 'Actor', clues: ['Interpreta personajes', 'Trabaja en cine o teatro', 'Memoriza guiones'] },
+      { word: 'Cantante', clues: ['Usa la voz como instrumento', 'Actúa en escenarios', 'Puede grabar discos'] },
+      { word: 'Director', clues: ['Coordina un proyecto', 'Toma decisiones creativas', 'Guía equipos'] },
+      { word: 'Atleta', clues: ['Compite físicamente', 'Se entrena mucho', 'Puede correr o saltar'] },
+      { word: 'Nadador', clues: ['Se mueve en el agua', 'Compite en piscina', 'Usa técnica y resistencia'] },
+      { word: 'Ciclista', clues: ['Usa una bicicleta', 'Puede competir en rutas', 'Necesita equilibrio'] },
+      { word: 'Arquero', clues: ['Lanza flechas', 'Usa arco', 'Requiere precisión'] },
+      { word: 'Astronauta', clues: ['Viaja al espacio', 'Usa traje espacial', 'Investiga fuera de la Tierra'] },
+      { word: 'Explorador', clues: ['Busca lugares nuevos', 'Se aventura', 'Sigue rutas desconocidas'] },
+      { word: 'Detector', clues: ['Busca señales ocultas', 'Puede hallar metales', 'Se usa en seguridad'] },
+      { word: 'Máscara', clues: ['Cubre el rostro', 'Puede ser decorativa', 'Se usa en fiestas o protección'] },
+      { word: 'Guante', clues: ['Cubre la mano', 'Protege del frío', 'Puede ser de trabajo'] },
+      { word: 'Bufanda', clues: ['Se lleva al cuello', 'Abriga', 'Es útil en invierno'] },
+      { word: 'Zapato', clues: ['Protege el pie', 'Se usa al caminar', 'Puede ser deportivo'] },
+      { word: 'Camisa', clues: ['Cubre el torso', 'Es prenda formal', 'Tiene botones'] },
+      { word: 'Pantalón', clues: ['Cubre las piernas', 'Es ropa común', 'Puede ser largo o corto'] },
+      { word: 'Vestido', clues: ['Es una prenda completa', 'Suele ser elegante', 'Lo usa mucha gente en ocasiones especiales'] },
+      { word: 'Traje', clues: ['Es ropa formal', 'Se usa en eventos', 'Puede incluir saco'] },
+      { word: 'Lotería', clues: ['Depende del azar', 'Tiene números', 'Puede dar premios'] },
+      { word: 'Ajedrez', clues: ['Es un juego estratégico', 'Tiene rey y reina', 'Se juega en tablero'] },
+      { word: 'Dado', clues: ['Tiene caras numeradas', 'Se usa en juegos', 'Depende del azar'] },
+      { word: 'Carta', clues: ['Puede ser de baraja', 'Se usa en juegos', 'También puede ser una misiva'] },
+      { word: 'Dominó', clues: ['Tiene fichas con puntos', 'Se juega por parejas o solo', 'Hace coincidencias de números'] },
+      { word: 'Balanza', clues: ['Sirve para pesar', 'Tiene dos platos o digital', 'Mide masa'] },
+      { word: 'Termómetro', clues: ['Mide la temperatura', 'Puede ser corporal', 'Se usa en salud y clima'] },
+      { word: 'Escáner', clues: ['Digitaliza información', 'Lee imágenes o códigos', 'Se usa en oficina'] },
+      { word: 'Impresora', clues: ['Saca documentos en papel', 'Trabaja con tinta o tóner', 'Se conecta al computador'] },
+      { word: 'Router', clues: ['Distribuye Internet', 'Conecta dispositivos', 'Tiene antenas o luces'] },
+      { word: 'Auriculares', clues: ['Permiten escuchar en privado', 'Se colocan en los oídos', 'Tienen cable o Bluetooth'] },
+      { word: 'Altavoz', clues: ['Emite sonido', 'Puede ser portátil', 'Amplifica música o voz'] },
+      { word: 'Batería externa', clues: ['Cargas dispositivos', 'Guarda energía', 'Es útil en movilidad'] },
+      { word: 'Linterna', clues: ['Da luz portátil', 'Funciona con pilas o batería', 'Útil en oscuridad'] },
+      { word: 'Candela', clues: ['Da luz con llama', 'Se usa en decoración', 'Puede derretirse'] },
+      { word: 'Química', clues: ['Estudia materia y cambios', 'Tiene laboratorios', 'Trabaja con sustancias'] },
+      { word: 'Física', clues: ['Estudia la naturaleza', 'Habla de fuerzas y energía', 'Explica movimiento'] },
+      { word: 'Biología', clues: ['Estudia seres vivos', 'Incluye células y órganos', 'Analiza la vida'] },
+      { word: 'Historia', clues: ['Estudia el pasado', 'Analiza acontecimientos', 'Depende de documentos'] },
+      { word: 'Geografía', clues: ['Estudia lugares', 'Habla de mapas y territorios', 'Relaciona clima y relieve'] },
+      { word: 'Arte', clues: ['Expresa creatividad', 'Puede ser pintura o música', 'Comunica emociones'] },
+      { word: 'Ciencia', clues: ['Busca evidencia', 'Usa método', 'Explora cómo funciona el mundo'] },
+      { word: 'Música', clues: ['Combina ritmo y melodía', 'Se escucha y se interpreta', 'Puede emocionar'] },
+      { word: 'Baile', clues: ['Se mueve con ritmo', 'Acompaña música', 'Puede ser coreografía'] },
+      { word: 'Teatro', clues: ['Hay actuación en vivo', 'Se interpreta una obra', 'Usa escenario'] },
+      { word: 'Novela', clues: ['Es un texto largo', 'Cuenta una historia', 'Tiene personajes y trama'] },
+      { word: 'Poema', clues: ['Juega con el lenguaje', 'Puede tener versos', 'Busca belleza'] },
+      { word: 'Cuento', clues: ['Es una historia breve', 'Tiene inicio, nudo y final', 'Puede ser infantil o fantástico'] },
+      { word: 'Librería', clues: ['Vende libros', 'A veces también papelería', 'Es lugar de lectura'] },
+      { word: 'Farmacia', clues: ['Vende medicamentos', 'Asesora salud básica', 'Tiene mostradores'] },
+      { word: 'Supermercado', clues: ['Vende de todo un poco', 'Hay carritos', 'Se compra comida y hogar'] },
+      { word: 'Panadería', clues: ['Huele a pan fresco', 'Produce bollería', 'Trabaja con harina'] },
+      { word: 'Cafetería', clues: ['Sirve café y postres', 'Es lugar de reunión', 'Suele ser acogedora'] },
+      { word: 'Hotel', clues: ['Hospeda viajeros', 'Tiene habitaciones', 'Ofrece alojamiento'] },
+      { word: 'Aerolínea', clues: ['Opera vuelos', 'Transporta pasajeros', 'Vende boletos'] },
+      { word: 'Moneda', clues: ['Sirve para pagar', 'Puede ser metálica', 'Tiene valor económico'] },
+      { word: 'Billete', clues: ['También sirve para pagar', 'Es de papel', 'Tiene denominación'] },
+      { word: 'Banco', clues: ['Guarda dinero', 'Otorga servicios financieros', 'Tiene sucursales'] },
+      { word: 'Mercado financiero', clues: ['Mueve dinero e inversiones', 'Incluye acciones', 'Es sensible a noticias'] },
+      { word: 'Acción', clues: ['Representa parte de una empresa', 'Se compra y vende', 'Tiene valor variable'] },
+      { word: 'Cuenta', clues: ['Guarda información o dinero', 'Puede ser bancaria o digital', 'Necesita acceso'] },
+      { word: 'Perfil', clues: ['Describe a una persona', 'Existe en redes o apps', 'Contiene datos'] },
+      { word: 'Mensaje', clues: ['Comunica texto o audio', 'Llega a otra persona', 'Puede ser urgente'] },
+      { word: 'Foto', clues: ['Captura un instante', 'Puede compartirse', 'Se guarda en álbum'] },
+      { word: 'Video', clues: ['Tiene imagen en movimiento', 'Puede tener sonido', 'Se reproduce en pantalla'] },
+      { word: 'Historia clínica', clues: ['Registra salud', 'Guarda antecedentes', 'La usan médicos'] },
+      { word: 'Mapa mental', clues: ['Organiza ideas', 'Tiene ramas', 'Ayuda a estudiar'] },
+      { word: 'Cronómetro', clues: ['Mide intervalos', 'Cuenta segundos', 'Se usa en deporte'] },
+      { word: 'Calendario', clues: ['Organiza días y meses', 'Sirve para planificar', 'Marca fechas'] },
+      { word: 'Agenda', clues: ['Guarda citas', 'Ayuda a organizarse', 'Puede ser física o digital'] },
+      { word: 'Pasaporte', clues: ['Permite viajar', 'Identifica a una persona', 'Tiene sellos'] },
+      { word: 'Maleta', clues: ['Sirve para viajes', 'Guarda ropa', 'Tiene asa o ruedas'] },
+      { word: 'Equipaje', clues: ['Viaja contigo', 'Incluye maletas y bolsos', 'Se registra en aeropuertos'] },
+      { word: 'Cráter', clues: ['Es un hueco grande', 'Puede venir de impactos', 'Se ve en la Luna o la Tierra'] },
+      { word: 'Bosque tropical', clues: ['Hace calor y humedad', 'Tiene mucha biodiversidad', 'Llueve bastante'] },
+      { word: 'Sabana', clues: ['Tiene pastizales', 'Hay animales grandes', 'Puede ser seca'] },
+      { word: 'Glaciar', clues: ['Es hielo acumulado', 'Se mueve lentamente', 'Está en zonas frías'] },
+      { word: 'Laguna', clues: ['Es pequeña o mediana', 'Tiene agua calma', 'Puede estar en montaña o costa'] },
+      { word: 'Trueno', clues: ['Suena durante tormenta', 'Sigue al relámpago', 'Es un ruido fuerte'] },
+      { word: 'Relámpago', clues: ['Es una descarga eléctrica', 'Ilumina el cielo', 'Acompaña a la tormenta'] },
+      { word: 'Rama', clues: ['Sale del tronco', 'Sostiene hojas', 'Pertenece a un árbol'] },
+      { word: 'Raíz', clues: ['Ancla y alimenta', 'Está bajo tierra', 'Perteneces a plantas'] },
+      { word: 'Semilla', clues: ['Da origen a una planta', 'Puede sembrarse', 'Está dentro de un fruto'] },
+      { word: 'Fruta', clues: ['Es alimento natural', 'Suele ser dulce', 'Sale de una planta'] },
+      { word: 'Verdura', clues: ['Es vegetal', 'Acompaña platos', 'Suele cocerse'] },
+      { word: 'Legumbre', clues: ['Es nutritiva', 'Viene en vaina o grano', 'Se cocina en guisos'] },
+      { word: 'Cereal', clues: ['Es alimento base', 'Puede venir en grano', 'Se usa en desayunos'] },
+      { word: 'Aceite', clues: ['Se usa en cocina', 'Puede venir de plantas', 'Es líquido'] },
+      { word: 'Vinagre', clues: ['Sazona alimentos', 'Tiene sabor ácido', 'Se usa en ensaladas'] },
+      { word: 'Sal', clues: ['Es condimento', 'Realza el sabor', 'Se extrae de minerales o mar'] },
+      { word: 'Azúcar', clues: ['Endulza comidas', 'Se usa en postres', 'Puede ser refinada o morena'] },
+      { word: 'Miel', clues: ['Es dulce natural', 'La producen abejas', 'Va bien en infusiones'] },
+      { word: 'Yogur', clues: ['Viene de la leche', 'Puede ser natural o saborizado', 'Tiene fermentación'] },
+      { word: 'Batido', clues: ['Es una bebida mezclada', 'Puede llevar fruta o leche', 'Se hace con licuadora'] },
+      { word: 'Licuadora', clues: ['Mezcla ingredientes', 'Tiene cuchillas', 'Prepara batidos'] },
+      { word: 'Horno', clues: ['Cocina con calor', 'Sirve para hornear', 'Puede ser eléctrico o a gas'] },
+      { word: 'Estufa', clues: ['Calienta o cocina', 'Tiene quemadores', 'Se usa en la cocina'] },
+      { word: 'Refrigerador', clues: ['Conserva alimentos', 'Produce frío', 'Tiene puerta y estantes'] },
+      { word: 'Congelador', clues: ['Enfría mucho', 'Guarda comida helada', 'Hace hielo'] },
+      { word: 'Lavadora', clues: ['Lava ropa', 'Gira y centrifuga', 'Funciona con agua y detergente'] },
+      { word: 'Secadora', clues: ['Quita humedad', 'Deja la ropa lista', 'Usa calor'] },
+      { word: 'Aspiradora', clues: ['Recoge polvo', 'Usa succión', 'Sirve para limpiar'] },
+      { word: 'Escoba', clues: ['Barre el suelo', 'Tiene cerdas', 'Se usa para limpieza'] },
+      { word: 'Trapo', clues: ['Limpia superficies', 'Puede ser de tela', 'Se moja o seca'] },
+      { word: 'Detergente', clues: ['Limpia ropa o platos', 'Hace espuma', 'Se usa con agua'] },
+      { word: 'Jabón', clues: ['Limpia y desengrasa', 'Puede ser sólido o líquido', 'Se usa con agua'] },
+      { word: 'Perfume', clues: ['Huele bien', 'Se aplica en el cuerpo', 'Puede tener varias notas'] },
+      { word: 'Crema', clues: ['Puede hidratar', 'Tiene textura suave', 'Se aplica en la piel'] },
+      { word: 'Cepillo', clues: ['Desenreda o limpia', 'Tiene cerdas', 'Existe para cabello o dientes'] },
+      { word: 'Pasta dental', clues: ['Se usa para higiene oral', 'Va en el cepillo', 'Protege los dientes'] },
+      { word: 'Espejismo', clues: ['Engaña la vista', 'Aparece en calor o desierto', 'Parece agua donde no la hay'] },
+      { word: 'Horizonte', clues: ['Marca lo que ves al lejos', 'Se une con el cielo', 'Varía según tu posición'] },
+      { word: 'Sombra', clues: ['Se forma por bloqueo de luz', 'Acompaña objetos', 'Cambia de tamaño'] },
+      { word: 'Brisa', clues: ['Es viento suave', 'Se siente agradable', 'Mueve hojas'] },
+      { word: 'Huracán', clues: ['Es un fenómeno fuerte', 'Tiene vientos intensos', 'Puede causar daños'] },
+      { word: 'Tornado', clues: ['Gira violentamente', 'Tiene forma de embudo', 'Puede arrasar zonas'] },
+      { word: 'Lluvia', clues: ['Cae del cielo', 'Mojar es su efecto', 'Se asocia con nubes'] },
+      { word: 'Granizo', clues: ['Cae como bolitas de hielo', 'Aparece en tormentas', 'Puede dañar cultivos'] },
+      { word: 'Clima', clues: ['Describe el estado del tiempo', 'Varía por región', 'Puede ser frío o cálido'] },
+      { word: 'Temporada', clues: ['Es un periodo del año', 'Puede ser de lluvias o vacaciones', 'Marca una etapa'] },
+      { word: 'Festival', clues: ['Reúne música o cultura', 'Suele ser festivo', 'Puede durar varios días'] },
+      { word: 'Concierto', clues: ['Hay música en vivo', 'Asiste público', 'Puede vender entradas'] },
+      { word: 'Exposición', clues: ['Muestra obras o piezas', 'A veces es temporal', 'Se visita en museos o ferias'] },
+      { word: 'Feria', clues: ['Reúne puestos y actividades', 'Puede ser comercial', 'Es muy concurrida'] },
+      { word: 'Competencia', clues: ['Comparte una meta', 'Hay ganadores', 'Se mide el rendimiento'] },
+      { word: 'Medalla', clues: ['Premia un logro', 'Puede ser de oro', 'Se cuelga al cuello'] },
+      { word: 'Trofeo', clues: ['Reconoce victoria', 'Suele ser llamativo', 'Se entrega en campeonatos'] },
+      { word: 'Bandera', clues: ['Representa un país o equipo', 'Tiene colores', 'Se iza en mástiles'] },
+      { word: 'Escenario', clues: ['Allí ocurre una presentación', 'Puede tener luces', 'Se ve en teatros o conciertos'] },
+      { word: 'Sorteo', clues: ['Depende del azar', 'Elige al ganador', 'Puede usar papeletas'] },
+      { word: 'Contrato', clues: ['Es un acuerdo legal', 'Define obligaciones', 'Puede ser firmado'] },
+      { word: 'Planeta', clues: ['Gira alrededor de una estrella', 'Es parte del sistema solar', 'No emite luz propia'] },
+      { word: 'Galaxia', clues: ['Agrupa estrellas', 'Tiene gran tamaño', 'La nuestra se llama Vía Láctea'] },
+      { word: 'Universo', clues: ['Contiene todo', 'Incluye galaxias y estrellas', 'Es inmenso'] },
+      { word: 'Cohete', clues: ['Despega con empuje', 'Viaja al espacio', 'Usa combustible'] },
+      { word: 'Órbita', clues: ['Es un recorrido alrededor de algo', 'La siguen planetas y satélites', 'Tiene forma curva'] },
+      { word: 'Gravedad', clues: ['Atrae cuerpos', 'Mantiene los pies en el suelo', 'Explica caídas'] },
+      { word: 'Energía', clues: ['Permite hacer trabajo', 'Puede transformarse', 'Está en movimiento o calor'] },
+      { word: 'Fuerza', clues: ['Puede empujar o jalar', 'Mueve objetos', 'Es clave en física'] },
+      { word: 'Movimiento', clues: ['Implica cambio de posición', 'Puede ser rápido o lento', 'Se mide en el tiempo'] },
+      { word: 'Velocidad', clues: ['Mide rapidez', 'Relaciona distancia y tiempo', 'Aparece en carreras'] },
+      { word: 'Equilibrio', clues: ['Mantiene estabilidad', 'Evita caídas', 'Es útil en deportes'] },
+      { word: 'Resistencia', clues: ['Soporta esfuerzo', 'Es importante en deporte', 'Ayuda a durar más'] },
+      { word: 'Precisión', clues: ['Acertar con exactitud', 'Importa en puntería', 'Reduce errores'] },
+      { word: 'Estrategia', clues: ['Planifica acciones', 'Busca ventaja', 'Es clave en juegos'] },
+      { word: 'Equipo', clues: ['Grupo que coopera', 'Comparte objetivo', 'Puede jugar unido'] },
+      { word: 'Familia', clues: ['Vive unida', 'Comparte vínculos', 'Tiene distintos roles'] },
+      { word: 'Amistad', clues: ['Se basa en confianza', 'Une personas', 'Se cultiva con tiempo'] },
+      { word: 'Confianza', clues: ['Permite creer en alguien', 'Se gana con acciones', 'Es importante en grupo'] },
+      { word: 'Secreto', clues: ['No debe contarse fácilmente', 'Puede proteger información', 'A veces crea tensión'] },
+      { word: 'Sospecha', clues: ['Duda sobre algo', 'Aparece en deducción', 'Puede llevar a investigar'] },
+      { word: 'Pista', clues: ['Ayuda a descubrir', 'Se usa en juegos y misterios', 'Puede ser pista clave'] },
+      { word: 'Misterio', clues: ['No se conoce de inmediato', 'Invita a investigar', 'A veces hay sospechosos'] },
+      { word: 'Detective', clues: ['Investiga casos', 'Busca pruebas', 'Resuelve misterios'] },
+      { word: 'Culpable', clues: ['Tiene responsabilidad', 'Es el foco de investigación', 'No es inocente'] },
+      { word: 'Inocente', clues: ['No tiene culpa', 'Puede necesitar defensa', 'Es lo opuesto a culpable'] },
+      { word: 'Verdad', clues: ['Corresponde a los hechos', 'Se busca descubrirla', 'Puede ser difícil de ver'] },
+      { word: 'Mentira', clues: ['Oculta la verdad', 'Puede engañar', 'No coincide con los hechos'] },
+      { word: 'Suerte', clues: ['Depende del azar', 'Puede favorecerte', 'No siempre se controla'] },
+      { word: 'Destino', clues: ['Marca un camino', 'Se asocia con futuro', 'Puede parecer inevitable'] },
+      { word: 'Juego', clues: ['Tiene reglas', 'Sirve para divertirse', 'Puede ser competitivo'] },
+      { word: 'Mesa redonda', clues: ['Reúne personas para conversar', 'No tiene esquinas', 'Fomenta diálogo'] },
+      { word: 'Lluvia de ideas', clues: ['Genera propuestas', 'Se hace en grupo', 'Busca creatividad'] },
+      { word: 'Reunión', clues: ['Varias personas se juntan', 'Puede tener agenda', 'Sirve para decidir'] },
+      { word: 'Turno', clues: ['Orden de participación', 'Evita caos', 'Puede rotarse'] },
+      { word: 'Tiempo', clues: ['Se mide en segundos y minutos', 'No se detiene', 'Es clave en este juego'] },
+      { word: 'Votación', clues: ['Se elige una opción', 'Usa mayoría', 'Puede decidir expulsiones'] },
+      { word: 'Expulsión', clues: ['Saca a alguien del juego', 'Tiene consecuencias', 'Puede cambiar la partida'] },
+      { word: 'Victoria', clues: ['Representa ganar', 'Llega al cumplir una meta', 'Cierra la partida'] },
+      { word: 'Derrota', clues: ['Representa perder', 'Suele frustrar', 'Invita a revancha'] },
+      { word: 'Partida', clues: ['Es una sesión de juego', 'Tiene inicio y final', 'Puede repetirse'] },
+      { word: 'Rol', clues: ['Define un papel', 'Puede estar oculto', 'Influye en estrategia'] },
+      { word: 'Impostor', clues: ['Engaña al grupo', 'Quiere pasar desapercibido', 'No tiene el rol civil'] },
+      { word: 'Civil', clues: ['Busca descubrir al impostor', 'Comparte información con el grupo', 'Quiere sobrevivir'] },
+      { word: 'Concepto', clues: ['Es la palabra secreta', 'Da identidad a la ronda', 'Determina las pistas'] },
+      { word: 'Pista secreta', clues: ['Solo la ve un rol especial', 'Ayuda a confundir o orientar', 'No debe compartirse'] },
+      { word: 'Mesa de votación', clues: ['Sirve para elegir', 'Hay presión social', 'Cierra una ronda'] },
+      { word: 'Pantalla de resultado', clues: ['Muestra el final', 'Anuncia ganadores', 'Resume la partida'] },
+      { word: 'Juego de mesa', clues: ['Se juega en un dispositivo', 'Incluye roles y decisiones', 'Reúne a varias personas'] },
+      { word: 'Aplicación web', clues: ['Funciona en navegador', 'No necesita instalación', 'Se adapta a pantallas'] },
+      { word: 'Interfaz', clues: ['Es la cara visible', 'Permite interactuar', 'Debe ser clara'] },
+      { word: 'Experiencia', clues: ['Lo que siente el jugador', 'Depende del diseño', 'Debe ser fluida'] },
+      { word: 'Responsivo', clues: ['Se adapta al tamaño de pantalla', 'Funciona en móvil y escritorio', 'Usa CSS flexible'] },
+      { word: 'LocalStorage', clues: ['Guarda datos en el navegador', 'Persiste entre sesiones', 'No necesita servidor'] },
+      { word: 'Estado', clues: ['Define en qué fase vas', 'Guía la UI', 'Controla acciones disponibles'] },
+      { word: 'Motor', clues: ['Coordina la lógica', 'Separa reglas de interfaz', 'Hace funcionar el juego'] },
+      { word: 'Turno privado', clues: ['Se mira de uno en uno', 'Protege información', 'Evita hacer trampa'] },
+      { word: 'Haptico', clues: ['Se siente con vibración', 'Mejora feedback', 'Usa el dispositivo'] },
+      { word: 'Presionar', clues: ['Implica tocar y mantener', 'Activa una acción', 'Se usa en móvil'] },
+      { word: 'Revelar', clues: ['Mostrar lo oculto', 'Sucede en una fase del juego', 'Necesita privacidad'] },
+      { word: 'Contador', clues: ['Marca avance o tiempo', 'Puede ser visual', 'Ayuda a seguir la partida'] },
+      { word: 'Crono', clues: ['Mide duración', 'Puede activarse al empezar', 'Aporta tensión'] },
+      { word: 'Inicio', clues: ['Marca el arranque', 'Elige al primer jugador', 'Abre la ronda'] },
+      { word: 'Final', clues: ['Cierra la partida', 'Muestra ganador', 'Da paso a reinicio'] },
+      { word: 'Revancha', clues: ['Permite jugar otra vez', 'Sirve tras perder', 'Es común en juegos'] },
+      { word: 'Estrategia', clues: ['Ayuda a decidir', 'Busca ganar con inteligencia', 'Importa en votaciones'] }
+    ]
+
+    while (CONCEPTS.length < 200) {
+      CONCEPTS.push({
+        word: `Concepto ${CONCEPTS.length + 1}`,
+        clues: [
+          'Pista genérica de apoyo',
+          'Segunda pista para orientar',
+          'Tercera pista para cerrar'
+        ]
+      })
+    }
+
+    const state = {
+      phase: 'config',
+      players: [],
+      timeMinutes: 5,
+      impostorCount: 1,
+      concept: null,
+      roles: [],
+      revealIndex: 0,
+      viewedCount: 0,
+      timer: {
+        total: 0,
+        remaining: 0,
+        introRemaining: INTRO_SECONDS,
+        interval: null,
+        paused: false,
+        active: false,
+        introActive: false
+      },
+      startingPlayerId: null,
+      selectedVoteId: null,
+      voteResultId: null,
+      winner: null,
+      eliminatedIds: [],
+      cachedClueIndex: 0,
+      message: ''
+    }
+
+    const el = {
+      views: {
+        config: document.getElementById('view-config'),
+        reveal: document.getElementById('view-reveal'),
+        game: document.getElementById('view-game'),
+        voting: document.getElementById('view-voting'),
+        results: document.getElementById('view-results')
+      },
+      playerName: document.getElementById('playerName'),
+      addPlayerBtn: document.getElementById('addPlayerBtn'),
+      playersList: document.getElementById('playersList'),
+      gameMinutes: document.getElementById('gameMinutes'),
+      gameMinutesLabel: document.getElementById('gameMinutesLabel'),
+      impostorsCount: document.getElementById('impostorsCount'),
+      configNotice: document.getElementById('configNotice'),
+      startGameBtn: document.getElementById('startGameBtn'),
+      resetStorageBtn: document.getElementById('resetStorageBtn'),
+      revealIntro: document.getElementById('revealIntro'),
+      revealCounter: document.getElementById('revealCounter'),
+      revealPlayerName: document.getElementById('revealPlayerName'),
+      holdZone: document.getElementById('holdZone'),
+      nextRevealBtn: document.getElementById('nextRevealBtn'),
+      abortToConfigBtn: document.getElementById('abortToConfigBtn'),
+      gamePhaseNotice: document.getElementById('gamePhaseNotice'),
+      timerRing: document.getElementById('timerRing'),
+      startingPlayerBadge: document.getElementById('startingPlayerBadge'),
+      aliveBadge: document.getElementById('aliveBadge'),
+      impostorBadge: document.getElementById('impostorBadge'),
+      currentConceptWord: document.getElementById('currentConceptWord'),
+      currentClue: document.getElementById('currentClue'),
+      goVotingBtn: document.getElementById('goVotingBtn'),
+      pauseTimerBtn: document.getElementById('pauseTimerBtn'),
+      voteGrid: document.getElementById('voteGrid'),
+      confirmVoteBtn: document.getElementById('confirmVoteBtn'),
+      skipVoteBtn: document.getElementById('skipVoteBtn'),
+      winnerBadge: document.getElementById('winnerBadge'),
+      resultTitle: document.getElementById('resultTitle'),
+      resultMessage: document.getElementById('resultMessage'),
+      resultDetails: document.getElementById('resultDetails'),
+      resultVoteInfo: document.getElementById('resultVoteInfo'),
+      playAgainBtn: document.getElementById('playAgainBtn'),
+      backToConfigBtn: document.getElementById('backToConfigBtn')
+    }
+
+    class GameEngine {
+      constructor() {
+        this.load()
+        this.syncUI()
+      }
+
+      save() {
+        const payload = {
+          players: state.players,
+          timeMinutes: state.timeMinutes,
+          impostorCount: state.impostorCount
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+      }
+
+      load() {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw)
+            state.players = Array.isArray(parsed.players) && parsed.players.length ? parsed.players : this.defaultPlayers()
+            state.timeMinutes = Number(parsed.timeMinutes) || 5
+            state.impostorCount = Number(parsed.impostorCount) || 1
+            return
+          } catch (_) {}
+        }
+        state.players = this.defaultPlayers()
+        state.timeMinutes = 5
+        state.impostorCount = 1
+        this.save()
+      }
+
+      defaultPlayers() {
+        return [
+          { id: crypto.randomUUID(), name: 'Jugador 1' },
+          { id: crypto.randomUUID(), name: 'Jugador 2' },
+          { id: crypto.randomUUID(), name: 'Jugador 3' }
+        ]
+      }
+
+      syncUI() {
+        el.gameMinutes.value = state.timeMinutes
+        el.gameMinutesLabel.textContent = state.timeMinutes
+        this.renderPlayers()
+        this.renderImpostorOptions()
+        this.validateConfig()
+      }
+
+      setPhase(phase) {
+        state.phase = phase
+        Object.values(el.views).forEach(view => view.classList.remove('active'))
+        el.views[phase].classList.add('active')
+      }
+
+      renderPlayers() {
+        el.playersList.innerHTML = ''
+        state.players.forEach((player, index) => {
+          const item = document.createElement('div')
+          item.className = 'player-item'
+          item.innerHTML = `
+            <div class="field" style="margin:0">
+              <label class="small">Jugador ${index + 1}</label>
+              <input type="text" value="${escapeHtml(player.name)}" data-player-name="${player.id}" maxlength="18" />
+            </div>
+            <div class="mini">
+              <span class="badge">#${index + 1}</span>
+              <button class="btn ghost" type="button" data-remove-player="${player.id}">Eliminar</button>
+            </div>
+          `
+          el.playersList.appendChild(item)
+        })
+      }
+
+      renderImpostorOptions() {
+        const maxImpostors = this.maxImpostors()
+        el.impostorsCount.innerHTML = ''
+        for (let i = 0; i <= maxImpostors; i++) {
+          const option = document.createElement('option')
+          option.value = String(i)
+          option.textContent = `${i} impostor${i === 1 ? '' : 'es'}`
+          el.impostorsCount.appendChild(option)
+        }
+        state.impostorCount = clamp(state.impostorCount, 0, maxImpostors)
+        el.impostorsCount.value = String(state.impostorCount)
+      }
+
+      maxImpostors() {
+        return Math.max(0, Math.floor(state.players.length / 2) - 1)
+      }
+
+      validateConfig() {
+        const validNames = state.players.filter(p => p.name.trim()).length
+        const canHaveImpostors = this.maxImpostors() >= 1
+        const startAllowed = validNames >= 3 && state.impostorCount >= 1 && canHaveImpostors
+        el.startGameBtn.disabled = !startAllowed
+        el.configNotice.innerHTML = canHaveImpostors
+          ? `<strong>Listo:</strong> ${state.players.length} jugadores, máximo ${this.maxImpostors()} impostor${this.maxImpostors() === 1 ? '' : 'es'}.`
+          : `<strong>Faltan jugadores:</strong> con 3 jugadores no hay impostores posibles. Agrega al menos 1 más.`
+      }
+
+      addPlayer(name) {
+        const trimmed = name.trim()
+        if (!trimmed) return
+        state.players.push({ id: crypto.randomUUID(), name: trimmed })
+        this.save()
+        this.syncUI()
+      }
+
+      updatePlayer(id, name) {
+        const player = state.players.find(p => p.id === id)
+        if (!player) return
+        player.name = name.trim() || player.name
+        this.save()
+        this.validateConfig()
+      }
+
+      removePlayer(id) {
+        if (state.players.length <= 3) {
+          toast('Mínimo 3 jugadores.')
+          return
+        }
+        state.players = state.players.filter(p => p.id !== id)
+        if (state.impostorCount > this.maxImpostors()) state.impostorCount = this.maxImpostors()
+        this.save()
+        this.syncUI()
+      }
+
+      startGame() {
+        if (state.players.length < 3 || state.impostorCount < 1 || this.maxImpostors() < 1) {
+          toast('Agrega al menos 4 jugadores para habilitar impostores.')
+          return
+        }
+        state.concept = randomItem(CONCEPTS)
+        const shuffled = shuffle([...state.players])
+        const impostors = new Set(shuffled.slice(0, state.impostorCount).map(p => p.id))
+        state.roles = state.players.map(player => ({
+          ...player,
+          role: impostors.has(player.id) ? 'impostor' : 'civil',
+          clue: impostors.has(player.id) ? pickOne(state.concept.clues) : state.concept.word,
+          viewed: false,
+          alive: true
+        }))
+        state.revealIndex = 0
+        state.viewedCount = 0
+        state.eliminatedIds = []
+        state.selectedVoteId = null
+        state.voteResultId = null
+        state.winner = null
+        state.cachedClueIndex = 0
+        state.timer.total = state.timeMinutes * 60
+        state.timer.remaining = state.timer.total
+        state.timer.introRemaining = INTRO_SECONDS
+        state.timer.active = false
+        state.timer.paused = false
+        state.timer.introActive = false
+        state.startingPlayerId = null
+        this.setPhase('reveal')
+        this.renderReveal()
+      }
+
+      renderReveal() {
+        const player = state.roles[state.revealIndex]
+        el.revealCounter.textContent = `${state.revealIndex + 1} / ${state.roles.length}`
+        el.revealPlayerName.textContent = player ? player.name : 'Todos listos'
+        el.nextRevealBtn.disabled = true
+        el.holdZone.classList.remove('active')
+        el.holdZone.innerHTML = `
+          <div>
+            <div class="badge warn">Mantén presionado</div>
+            <p class="small">Cuando reveles, verás tu rol solo durante esta sesión.</p>
+          </div>
+        `
+        el.revealIntro.textContent = player
+          ? `Turno de ${player.name}. Mantén presionado para ver su rol.`
+          : 'Toda la mesa ya vio su rol.'
+      }
+
+      revealCurrentPlayer() {
+        const player = state.roles[state.revealIndex]
+        if (!player || player.viewed) return
+        player.viewed = true
+        state.viewedCount += 1
+        const isImpostor = player.role === 'impostor'
+        el.holdZone.classList.add('active')
+        el.holdZone.innerHTML = `
+          <div class="role-box" style="width:100%;margin:0">
+            <div class="badge ${isImpostor ? 'warn' : 'ok'}">${isImpostor ? 'Impostor' : 'Civil'}</div>
+            <div class="role-big ${isImpostor ? 'impostor' : 'civil'}">${isImpostor ? 'PISTA' : 'PALABRA'}</div>
+            <h3>${isImpostor ? player.clue : state.concept.word}</h3>
+            <p class="small">${isImpostor ? 'Solo una pista. No digas nada.' : 'Tu misión: proteger la palabra.'}</p>
+          </div>
+        `
+        el.nextRevealBtn.disabled = false
+        pulse()
+        this.validateRevealProgress()
+      }
+
+      validateRevealProgress() {
+        el.revealCounter.textContent = `${state.viewedCount} / ${state.roles.length}`
+        if (state.viewedCount >= state.roles.length) {
+          el.nextRevealBtn.textContent = 'Iniciar partida'
+        } else {
+          el.nextRevealBtn.textContent = 'Siguiente jugador'
+        }
+      }
+
+      nextReveal() {
+        state.revealIndex += 1
+        if (state.revealIndex >= state.roles.length) {
+          this.startIntroPhase()
+          return
+        }
+        this.renderReveal()
+      }
+
+      startIntroPhase() {
+        this.setPhase('game')
+        state.timer.introActive = true
+        state.timer.active = false
+        state.timer.paused = false
+        state.startingPlayerId = pickOne(state.players).id
+        el.startingPlayerBadge.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)}`
+        el.currentConceptWord.textContent = state.concept.word
+        el.currentClue.textContent = 'La partida comienza en breve.'
+        el.gamePhaseNotice.textContent = `Preparación: ${INTRO_SECONDS} segundos para que la mesa se organice.`
+        this.updateHUD()
+        this.tickIntro()
+        this.startTicker()
+      }
+
+      startTicker() {
+        clearInterval(state.timer.interval)
+        state.timer.interval = setInterval(() => this.tick(), 1000)
+      }
+
+      tick() {
+        if (state.timer.introActive) {
+          this.tickIntro()
+          return
+        }
+        if (!state.timer.active || state.timer.paused) return
+        state.timer.remaining = Math.max(0, state.timer.remaining - 1)
+        this.updateHUD()
+        if (state.timer.remaining <= 0) {
+          this.finish('impostor', 'El tiempo se agotó.')
+        }
+      }
+
+      tickIntro() {
+        if (!state.timer.introActive) return
+        if (state.timer.introRemaining <= 0) {
+          state.timer.introActive = false
+          state.timer.active = true
+          el.gamePhaseNotice.textContent = 'Juego activo: discute, investiga y acusa.'
+          el.currentClue.textContent = this.nextClue()
+          this.updateHUD()
+          return
+        }
+        el.gamePhaseNotice.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)} — empieza en ${state.timer.introRemaining}s`
+        state.timer.introRemaining -= 1
+        this.updateHUD()
+      }
+
+      nextClue() {
+        state.cachedClueIndex = (state.cachedClueIndex + 1) % state.concept.clues.length
+        return state.concept.clues[state.cachedClueIndex]
+      }
+
+      updateHUD() {
+        const remaining = state.timer.introActive ? state.timer.introRemaining : state.timer.remaining
+        el.timerRing.textContent = state.timer.introActive ? `${pad(remaining)}s` : formatTime(remaining)
+        const percent = state.timer.total ? ((state.timer.total - state.timer.remaining) / state.timer.total) * 100 : 0
+        el.timerRing.style.setProperty('--progress', `${Math.min(100, Math.max(0, percent))}%`)
+        el.aliveBadge.textContent = `Vivos: ${state.roles.filter(p => p.alive).length}`
+        el.impostorBadge.textContent = `Impostores: ${state.roles.filter(p => p.alive && p.role === 'impostor').length}`
+      }
+
+      pauseTimer() {
+        if (!state.timer.active) return
+        state.timer.paused = !state.timer.paused
+        el.pauseTimerBtn.textContent = state.timer.paused ? 'Reanudar' : 'Pausar'
+        el.gamePhaseNotice.textContent = state.timer.paused ? 'Partida pausada.' : 'Juego activo: discute, investiga y acusa.'
+      }
+
+      openVoting() {
+        clearInterval(state.timer.interval)
+        state.timer.active = false
+        state.timer.introActive = false
+        this.setPhase('voting')
+        state.selectedVoteId = null
+        this.renderVoteGrid()
+      }
+
+      resumeGame(message) {
+        this.setPhase('game')
+        state.timer.active = true
+        state.timer.paused = false
+        el.pauseTimerBtn.textContent = 'Pausar'
+        el.gamePhaseNotice.textContent = message || 'Juego activo: discute, investiga y acusa.'
+        this.updateHUD()
+        this.startTicker()
+      }
+
+      renderVoteGrid() {
+        el.voteGrid.innerHTML = ''
+        const alivePlayers = state.roles.filter(p => p.alive)
+        alivePlayers.forEach(player => {
+          const btn = document.createElement('button')
+          btn.type = 'button'
+          btn.className = 'player-chip'
+          btn.textContent = player.name
+          btn.dataset.voteId = player.id
+          btn.addEventListener('click', () => {
+            state.selectedVoteId = player.id
+            [...el.voteGrid.querySelectorAll('.player-chip')].forEach(x => x.classList.toggle('selected', x.dataset.voteId === player.id))
+            el.confirmVoteBtn.disabled = false
+            pulse()
+          })
+          el.voteGrid.appendChild(btn)
+        })
+        el.confirmVoteBtn.disabled = true
+      }
+
+      confirmVote(skip = false) {
+        let target = null
+        if (!skip) {
+          target = state.roles.find(p => p.id === state.selectedVoteId && p.alive)
+          if (!target) {
+            toast('Selecciona un jugador.')
+            return
+          }
+        }
+        if (target) {
+          target.alive = false
+          state.eliminatedIds.push(target.id)
+          state.voteResultId = target.id
+        }
+        const remainingImpostors = state.roles.filter(p => p.alive && p.role === 'impostor').length
+        const remainingCivils = state.roles.filter(p => p.alive && p.role === 'civil').length
+        if (remainingImpostors === 0 && state.impostorCount > 0) {
+          this.finish('civil', target ? `${target.name} era impostor.` : 'La mesa expulsó al último impostor.')
+          return
+        }
+        if (remainingImpostors >= remainingCivils) {
+          this.finish('impostor', 'Los impostores igualaron o superaron a los civiles.')
+          return
+        }
+        this.resumeGame(target ? `Se expulsó a ${target.name}. La partida continúa.` : 'La votación terminó sin expulsión decisiva. La partida continúa.')
+      }
+
+      finish(winner, reason) {
+        clearInterval(state.timer.interval)
+        state.winner = winner
+        this.setPhase('results')
+        const civils = state.roles.filter(p => p.role === 'civil').length
+        const impostors = state.roles.filter(p => p.role === 'impostor').length
+        const alive = state.roles.filter(p => p.alive)
+        el.winnerBadge.className = `badge ${winner === 'civil' ? 'ok' : 'danger'}`
+        el.winnerBadge.textContent = winner === 'civil' ? 'Victoria civil' : 'Victoria impostora'
+        el.resultTitle.textContent = winner === 'civil' ? 'GANARON LOS CIVILES' : 'GANARON LOS IMPOSTORES'
+        el.resultTitle.className = `role-big ${winner === 'civil' ? 'civil' : 'impostor'}`
+        el.resultMessage.textContent = reason
+        el.resultDetails.innerHTML = `
+          <strong>Concepto:</strong> ${escapeHtml(state.concept.word)}<br>
+          <strong>Jugadores vivos:</strong> ${alive.map(p => p.name).join(', ') || 'Ninguno'}<br>
+          <strong>Civiles:</strong> ${civils} · <strong>Impostores:</strong> ${impostors}
+        `
+        el.resultVoteInfo.textContent = state.voteResultId ? `Última expulsión: ${this.playerNameById(state.voteResultId)}` : 'No hubo expulsión final.'
+        pulse(40)
+      }
+
+      restart(toConfig = false) {
+        clearInterval(state.timer.interval)
+        state.phase = 'config'
+        state.concept = null
+        state.roles = []
+        state.selectedVoteId = null
+        state.voteResultId = null
+        state.winner = null
+        state.eliminatedIds = []
+        state.timer.active = false
+        state.timer.introActive = false
+        state.timer.paused = false
+        state.timer.remaining = 0
+        state.timer.introRemaining = INTRO_SECONDS
+        el.pauseTimerBtn.textContent = 'Pausar'
+        if (toConfig) this.setPhase('config')
+        this.syncUI()
+      }
+
+      playerNameById(id) {
+        return state.players.find(p => p.id === id)?.name || 'Jugador'
+      }
+
+      getCurrentClue() {
+        return state.concept?.clues?.[state.cachedClueIndex] || '-'
+      }
+    }
+
+    const engine = new GameEngine()
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"]+/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[s]))
+    }
+
+    function randomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)]
+    }
+
+    function pickOne(arr) {
+      return randomItem(arr)
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[array[i], array[j]] = [array[j], array[i]]
+      }
+      return array
+    }
+
+    function clamp(n, min, max) {
+      return Math.min(max, Math.max(min, n))
+    }
+
+    function formatTime(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60)
+      const secs = totalSeconds % 60
+      return `${pad(mins)}:${pad(secs)}`
+    }
+
+    function pad(num) {
+      return String(num).padStart(2, '0')
+    }
+
+    function toast(message) {
+      el.configNotice.innerHTML = `<strong>Atención:</strong> ${message}`
+    }
+
+    function pulse(duration = 20) {
+      try { navigator.vibrate?.(duration) } catch (_) {}
+    }
+
+    let holdTimer = null
+    let holding = false
+
+    function stopHold() {
+      holding = false
+      clearTimeout(holdTimer)
+      el.holdZone.classList.remove('active')
+    }
+
+    el.addPlayerBtn.addEventListener('click', () => {
+      engine.addPlayer(el.playerName.value)
+      el.playerName.value = ''
+      el.playerName.focus()
+    })
+
+    el.playerName.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        engine.addPlayer(el.playerName.value)
+        el.playerName.value = ''
+      }
+    })
+
+    el.playersList.addEventListener('input', event => {
+      const input = event.target.closest('input[data-player-name]')
+      if (!input) return
+      engine.updatePlayer(input.dataset.playerName, input.value)
+    })
+
+    el.playersList.addEventListener('click', event => {
+      const btn = event.target.closest('[data-remove-player]')
+      if (!btn) return
+      engine.removePlayer(btn.dataset.removePlayer)
+    })
+
+    el.gameMinutes.addEventListener('input', () => {
+      state.timeMinutes = Number(el.gameMinutes.value)
+      el.gameMinutesLabel.textContent = state.timeMinutes
+      engine.save()
+    })
+
+    el.impostorsCount.addEventListener('change', () => {
+      state.impostorCount = Number(el.impostorsCount.value)
+      engine.save()
+      engine.validateConfig()
+    })
+
+    el.startGameBtn.addEventListener('click', () => engine.startGame())
+    el.resetStorageBtn.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY)
+      state.players = engine.defaultPlayers()
+      state.timeMinutes = 5
+      state.impostorCount = 1
+      engine.save()
+      engine.syncUI()
+      toast('Guardado eliminado.')
+    })
+
+    el.holdZone.addEventListener('pointerdown', event => {
+      event.preventDefault()
+      if (holding) return
+      holding = true
+      el.holdZone.classList.add('active')
+      holdTimer = setTimeout(() => {
+        if (!holding) return
+        engine.revealCurrentPlayer()
+      }, HOLD_MS)
+    })
+
+    ;['pointerup', 'pointercancel', 'pointerleave', 'lostpointercapture'].forEach(type => {
+      el.holdZone.addEventListener(type, stopHold)
+    })
+
+    el.nextRevealBtn.addEventListener('click', () => engine.nextReveal())
+    el.abortToConfigBtn.addEventListener('click', () => engine.restart(true))
+    el.goVotingBtn.addEventListener('click', () => engine.openVoting())
+    el.pauseTimerBtn.addEventListener('click', () => engine.pauseTimer())
+    el.confirmVoteBtn.addEventListener('click', () => engine.confirmVote(false))
+    el.skipVoteBtn.addEventListener('click', () => engine.confirmVote(true))
+    el.playAgainBtn.addEventListener('click', () => engine.restart(true))
+    el.backToConfigBtn.addEventListener('click', () => engine.restart(true))
+
+    window.addEventListener('beforeunload', () => engine.save())
+
+    engine.setPhase('config')
+    engine.updateHUD()
+    engine.renderPlayers()
+    engine.renderImpostorOptions()
+  </script>
+</body>
+</html>
