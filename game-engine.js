@@ -544,7 +544,7 @@ window.engine = engine;
       const player = state.roles[state.revealIndex]
       if (player && player.viewed) {
         // Player already viewed their role - show hidden message
-        el.holdZone.textContent = 'Ya viste tu rol. Presiona "Siguiente jugador" para continuar.'
+        el.holdZone.textContent = 'Ya viste tu rol. Mantén presionado para volver a verlo'
       } else if (player) {
         // Player never completed the hold - restore original message
         el.holdZone.textContent = 'Mantén presionado para revelar'
