@@ -1,21 +1,21 @@
-import { CONCEPTS } from './data.js'
+import { CONCEPTS } from './data.js';
 
-const STORAGE_KEY = 'impostor-game-save-v1'
-    const HOLD_MS = 650
-    const INTRO_SECONDS = 30
+const STORAGE_KEY = 'impostor-game-save-v1';
+const HOLD_MS = 650;
+const INTRO_SECONDS = 30;
 
-        while (CONCEPTS.length < 200) {
-      CONCEPTS.push({
-        word: `Concepto ${CONCEPTS.length + 1}`,
-        clues: [
-          'Pista genérica de apoyo',
-          'Segunda pista para orientar',
-          'Tercera pista para cerrar'
-        ]
-      })
-    }
+while (CONCEPTS.length < 200) {
+  CONCEPTS.push({
+    word: `Concepto ${CONCEPTS.length + 1}`,
+    clues: [
+      'Pista genérica de apoyo',
+      'Segunda pista para orientar',
+      'Tercera pista para cerrar'
+    ]
+  });
+}
 
-    const state = {
+const state = {
       phase: 'config',
       players: [],
       timeMinutes: 5,
@@ -70,7 +70,6 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       startingPlayerBadge: document.getElementById('startingPlayerBadge'),
       aliveBadge: document.getElementById('aliveBadge'),
       impostorBadge: document.getElementById('impostorBadge'),
-      currentConceptWord: document.getElementById('currentConceptWord'),
       currentClue: document.getElementById('currentClue'),
       goVotingBtn: document.getElementById('goVotingBtn'),
       pauseTimerBtn: document.getElementById('pauseTimerBtn'),
@@ -173,7 +172,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       }
 
       maxImpostors() {
-        return Math.max(0, Math.floor(state.players.length / 2) - 1)
+        return Math.max(0, Math.floor((state.players.length - 1) / 2))
       }
 
       validateConfig() {
@@ -183,7 +182,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
         el.startGameBtn.disabled = !startAllowed
         el.configNotice.innerHTML = canHaveImpostors
           ? `<strong>Listo:</strong> ${state.players.length} jugadores, máximo ${this.maxImpostors()} impostor${this.maxImpostors() === 1 ? '' : 'es'}.`
-          : `<strong>Faltan jugadores:</strong> con 3 jugadores no hay impostores posibles. Agrega al menos 1 más.`
+          : `<strong>Faltan jugadores:</strong> necesitas al menos 3 jugadores para jugar.`
       }
 
       addPlayer(name) {
@@ -215,7 +214,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
 
       startGame() {
         if (state.players.length < 3 || state.impostorCount < 1 || this.maxImpostors() < 1) {
-          toast('Agrega al menos 4 jugadores para habilitar impostores.')
+          toast('Agrega al menos 3 jugadores para jugar.')
           return
         }
         state.concept = randomItem(CONCEPTS)
@@ -265,9 +264,12 @@ const STORAGE_KEY = 'impostor-game-save-v1'
 
       revealCurrentPlayer() {
         const player = state.roles[state.revealIndex]
-        if (!player || player.viewed) return
-        player.viewed = true
-        state.viewedCount += 1
+        if (!player) return
+        // Only count the first time they view their role
+        if (!player.viewed) {
+          player.viewed = true
+          state.viewedCount += 1
+        }
         const isImpostor = player.role === 'impostor'
         el.holdZone.classList.add('active')
         el.holdZone.innerHTML = `
@@ -308,7 +310,6 @@ const STORAGE_KEY = 'impostor-game-save-v1'
         state.timer.paused = false
         state.startingPlayerId = pickOne(state.players).id
         el.startingPlayerBadge.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)}`
-        el.currentConceptWord.textContent = state.concept.word
         el.currentClue.textContent = 'La partida comienza en breve.'
         el.gamePhaseNotice.textContent = `Preparación: ${INTRO_SECONDS} segundos para que la mesa se organice.`
         this.updateHUD()
@@ -390,23 +391,23 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       }
 
       renderVoteGrid() {
-        el.voteGrid.innerHTML = ''
-        const alivePlayers = state.roles.filter(p => p.alive)
+        el.voteGrid.innerHTML = '';
+        const alivePlayers = state.roles.filter(p => p.alive);
         alivePlayers.forEach(player => {
-          const btn = document.createElement('button')
-          btn.type = 'button'
-          btn.className = 'player-chip'
-          btn.textContent = player.name
-          btn.dataset.voteId = player.id
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'player-chip';
+          btn.textContent = player.name;
+          btn.dataset.voteId = player.id;
           btn.addEventListener('click', () => {
-            state.selectedVoteId = player.id
-            [...el.voteGrid.querySelectorAll('.player-chip')].forEach(x => x.classList.toggle('selected', x.dataset.voteId === player.id))
-            el.confirmVoteBtn.disabled = false
-            pulse()
-          })
-          el.voteGrid.appendChild(btn)
-        })
-        el.confirmVoteBtn.disabled = true
+            state.selectedVoteId = player.id;
+            [...el.voteGrid.querySelectorAll('.player-chip')].forEach(x => x.classList.toggle('selected', x.dataset.voteId === player.id));
+            el.confirmVoteBtn.disabled = false;
+            pulse();
+          });
+          el.voteGrid.appendChild(btn);
+        });
+        el.confirmVoteBtn.disabled = true;
       }
 
       confirmVote(skip = false) {
@@ -485,7 +486,10 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       }
     }
 
-    const engine = new GameEngine()
+    const engine = new GameEngine();
+
+// Make engine accessible for debugging
+window.engine = engine;
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"]+/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[s]))
@@ -536,6 +540,25 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       holding = false
       clearTimeout(holdTimer)
       el.holdZone.classList.remove('active')
+      // Hide the secret info when releasing, but keep "Next player" button enabled
+      const player = state.roles[state.revealIndex]
+      if (player && player.viewed) {
+        // Player already viewed their role - show hidden message
+        el.holdZone.innerHTML = `
+          <div>
+            <div class="badge ok">Rol ocultado</div>
+            <p class="small">Ya viste tu rol. Presiona "Siguiente jugador" para continuar.</p>
+          </div>
+        `
+      } else if (player) {
+        // Player never completed the hold - restore original message
+        el.holdZone.innerHTML = `
+          <div>
+            <div class="badge warn">Mantén presionado</div>
+            <p class="small">Cuando reveles, verás tu rol solo durante esta sesión.</p>
+          </div>
+        `
+      }
     }
 
     el.addPlayerBtn.addEventListener('click', () => {

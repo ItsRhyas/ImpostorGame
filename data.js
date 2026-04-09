@@ -351,4 +351,3 @@ export const CONCEPTS = [
       { word: 'Revancha', clues: ['Permite jugar otra vez', 'Sirve tras perder', 'Es común en juegos'] },
       { word: 'Estrategia', clues: ['Ayuda a decidir', 'Busca ganar con inteligencia', 'Importa en votaciones'] }
     ]
-]
