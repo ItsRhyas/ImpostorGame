@@ -1,21 +1,21 @@
-import { CONCEPTS } from './data.js'
+import { CONCEPTS } from './data.js';
 
-const STORAGE_KEY = 'impostor-game-save-v1'
-    const HOLD_MS = 650
-    const INTRO_SECONDS = 30
+const STORAGE_KEY = 'impostor-game-save-v1';
+const HOLD_MS = 0;
+const INTRO_SECONDS = 0;
 
-        while (CONCEPTS.length < 200) {
-      CONCEPTS.push({
-        word: `Concepto ${CONCEPTS.length + 1}`,
-        clues: [
-          'Pista genérica de apoyo',
-          'Segunda pista para orientar',
-          'Tercera pista para cerrar'
-        ]
-      })
-    }
+while (CONCEPTS.length < 200) {
+  CONCEPTS.push({
+    word: `Concepto ${CONCEPTS.length + 1}`,
+    clues: [
+      'Pista genérica de apoyo',
+      'Segunda pista para orientar',
+      'Tercera pista para cerrar'
+    ]
+  });
+}
 
-    const state = {
+const state = {
       phase: 'config',
       players: [],
       timeMinutes: 5,
@@ -63,6 +63,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       revealCounter: document.getElementById('revealCounter'),
       revealPlayerName: document.getElementById('revealPlayerName'),
       holdZone: document.getElementById('holdZone'),
+      roleCardDisplay: document.getElementById('roleCardDisplay'),
       nextRevealBtn: document.getElementById('nextRevealBtn'),
       abortToConfigBtn: document.getElementById('abortToConfigBtn'),
       gamePhaseNotice: document.getElementById('gamePhaseNotice'),
@@ -70,8 +71,6 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       startingPlayerBadge: document.getElementById('startingPlayerBadge'),
       aliveBadge: document.getElementById('aliveBadge'),
       impostorBadge: document.getElementById('impostorBadge'),
-      currentConceptWord: document.getElementById('currentConceptWord'),
-      currentClue: document.getElementById('currentClue'),
       goVotingBtn: document.getElementById('goVotingBtn'),
       pauseTimerBtn: document.getElementById('pauseTimerBtn'),
       voteGrid: document.getElementById('voteGrid'),
@@ -83,7 +82,10 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       resultDetails: document.getElementById('resultDetails'),
       resultVoteInfo: document.getElementById('resultVoteInfo'),
       playAgainBtn: document.getElementById('playAgainBtn'),
-      backToConfigBtn: document.getElementById('backToConfigBtn')
+      backToConfigBtn: document.getElementById('backToConfigBtn'),
+      header: document.querySelector('header'),
+      hero: document.querySelector('.hero'),
+      footer: document.querySelector('footer')
     }
 
     class GameEngine {
@@ -138,6 +140,10 @@ const STORAGE_KEY = 'impostor-game-save-v1'
         state.phase = phase
         Object.values(el.views).forEach(view => view.classList.remove('active'))
         el.views[phase].classList.add('active')
+        const isConfig = phase === 'config';
+        if(el.header) el.header.style.display = isConfig ? '' : 'none';
+        if(el.hero) el.hero.style.display = isConfig ? '' : 'none';
+        if(el.footer) el.footer.style.display = isConfig ? '' : 'none';
       }
 
       renderPlayers() {
@@ -173,7 +179,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       }
 
       maxImpostors() {
-        return Math.max(0, Math.floor(state.players.length / 2) - 1)
+        return Math.max(0, Math.floor((state.players.length - 1) / 2))
       }
 
       validateConfig() {
@@ -183,7 +189,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
         el.startGameBtn.disabled = !startAllowed
         el.configNotice.innerHTML = canHaveImpostors
           ? `<strong>Listo:</strong> ${state.players.length} jugadores, máximo ${this.maxImpostors()} impostor${this.maxImpostors() === 1 ? '' : 'es'}.`
-          : `<strong>Faltan jugadores:</strong> con 3 jugadores no hay impostores posibles. Agrega al menos 1 más.`
+          : `<strong>Faltan jugadores:</strong> necesitas al menos 3 jugadores para jugar.`
       }
 
       addPlayer(name) {
@@ -215,7 +221,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
 
       startGame() {
         if (state.players.length < 3 || state.impostorCount < 1 || this.maxImpostors() < 1) {
-          toast('Agrega al menos 4 jugadores para habilitar impostores.')
+          toast('Agrega al menos 3 jugadores para jugar.')
           return
         }
         state.concept = randomItem(CONCEPTS)
@@ -251,13 +257,9 @@ const STORAGE_KEY = 'impostor-game-save-v1'
         el.revealCounter.textContent = `${state.revealIndex + 1} / ${state.roles.length}`
         el.revealPlayerName.textContent = player ? player.name : 'Todos listos'
         el.nextRevealBtn.disabled = true
-        el.holdZone.classList.remove('active')
-        el.holdZone.innerHTML = `
-          <div>
-            <div class="badge warn">Mantén presionado</div>
-            <p class="small">Cuando reveles, verás tu rol solo durante esta sesión.</p>
-          </div>
-        `
+        el.roleCardDisplay.innerHTML = ''
+        el.holdZone.textContent = 'Mantén presionado para revelar'
+        el.holdZone.classList.remove('revealed')
         el.revealIntro.textContent = player
           ? `Turno de ${player.name}. Mantén presionado para ver su rol.`
           : 'Toda la mesa ya vio su rol.'
@@ -265,12 +267,14 @@ const STORAGE_KEY = 'impostor-game-save-v1'
 
       revealCurrentPlayer() {
         const player = state.roles[state.revealIndex]
-        if (!player || player.viewed) return
-        player.viewed = true
-        state.viewedCount += 1
+        if (!player) return
+        // Only count the first time they view their role
+        if (!player.viewed) {
+          player.viewed = true
+          state.viewedCount += 1
+        }
         const isImpostor = player.role === 'impostor'
-        el.holdZone.classList.add('active')
-        el.holdZone.innerHTML = `
+        el.roleCardDisplay.innerHTML = `
           <div class="role-box" style="width:100%;margin:0">
             <div class="badge ${isImpostor ? 'warn' : 'ok'}">${isImpostor ? 'Impostor' : 'Civil'}</div>
             <div class="role-big ${isImpostor ? 'impostor' : 'civil'}">${isImpostor ? 'PISTA' : 'PALABRA'}</div>
@@ -278,6 +282,8 @@ const STORAGE_KEY = 'impostor-game-save-v1'
             <p class="small">${isImpostor ? 'Solo una pista. No digas nada.' : 'Tu misión: proteger la palabra.'}</p>
           </div>
         `
+        el.holdZone.classList.add('revealed')
+        el.holdZone.textContent = 'Soltar para ocultar'
         el.nextRevealBtn.disabled = false
         pulse()
         this.validateRevealProgress()
@@ -303,16 +309,13 @@ const STORAGE_KEY = 'impostor-game-save-v1'
 
       startIntroPhase() {
         this.setPhase('game')
-        state.timer.introActive = true
-        state.timer.active = false
+        state.timer.introActive = false
+        state.timer.active = true
         state.timer.paused = false
         state.startingPlayerId = pickOne(state.players).id
         el.startingPlayerBadge.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)}`
-        el.currentConceptWord.textContent = state.concept.word
-        el.currentClue.textContent = 'La partida comienza en breve.'
-        el.gamePhaseNotice.textContent = `Preparación: ${INTRO_SECONDS} segundos para que la mesa se organice.`
+        el.gamePhaseNotice.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)} — ¡A jugar!`
         this.updateHUD()
-        this.tickIntro()
         this.startTicker()
       }
 
@@ -322,10 +325,6 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       }
 
       tick() {
-        if (state.timer.introActive) {
-          this.tickIntro()
-          return
-        }
         if (!state.timer.active || state.timer.paused) return
         state.timer.remaining = Math.max(0, state.timer.remaining - 1)
         this.updateHUD()
@@ -334,19 +333,18 @@ const STORAGE_KEY = 'impostor-game-save-v1'
         }
       }
 
-      tickIntro() {
-        if (!state.timer.introActive) return
-        if (state.timer.introRemaining <= 0) {
-          state.timer.introActive = false
-          state.timer.active = true
-          el.gamePhaseNotice.textContent = 'Juego activo: discute, investiga y acusa.'
-          el.currentClue.textContent = this.nextClue()
-          this.updateHUD()
-          return
-        }
-        el.gamePhaseNotice.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)} — empieza en ${state.timer.introRemaining}s`
-        state.timer.introRemaining -= 1
+      startTicker() {
+        clearInterval(state.timer.interval)
+        state.timer.interval = setInterval(() => this.tick(), 1000)
+      }
+
+      tick() {
+        if (!state.timer.active || state.timer.paused) return
+        state.timer.remaining = Math.max(0, state.timer.remaining - 1)
         this.updateHUD()
+        if (state.timer.remaining <= 0) {
+          this.finish('impostor', 'El tiempo se agotó.')
+        }
       }
 
       nextClue() {
@@ -355,8 +353,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       }
 
       updateHUD() {
-        const remaining = state.timer.introActive ? state.timer.introRemaining : state.timer.remaining
-        el.timerRing.textContent = state.timer.introActive ? `${pad(remaining)}s` : formatTime(remaining)
+        el.timerRing.textContent = formatTime(state.timer.remaining)
         const percent = state.timer.total ? ((state.timer.total - state.timer.remaining) / state.timer.total) * 100 : 0
         el.timerRing.style.setProperty('--progress', `${Math.min(100, Math.max(0, percent))}%`)
         el.aliveBadge.textContent = `Vivos: ${state.roles.filter(p => p.alive).length}`
@@ -390,23 +387,23 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       }
 
       renderVoteGrid() {
-        el.voteGrid.innerHTML = ''
-        const alivePlayers = state.roles.filter(p => p.alive)
+        el.voteGrid.innerHTML = '';
+        const alivePlayers = state.roles.filter(p => p.alive);
         alivePlayers.forEach(player => {
-          const btn = document.createElement('button')
-          btn.type = 'button'
-          btn.className = 'player-chip'
-          btn.textContent = player.name
-          btn.dataset.voteId = player.id
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'player-chip';
+          btn.textContent = player.name;
+          btn.dataset.voteId = player.id;
           btn.addEventListener('click', () => {
-            state.selectedVoteId = player.id
-            [...el.voteGrid.querySelectorAll('.player-chip')].forEach(x => x.classList.toggle('selected', x.dataset.voteId === player.id))
-            el.confirmVoteBtn.disabled = false
-            pulse()
-          })
-          el.voteGrid.appendChild(btn)
-        })
-        el.confirmVoteBtn.disabled = true
+            state.selectedVoteId = player.id;
+            [...el.voteGrid.querySelectorAll('.player-chip')].forEach(x => x.classList.toggle('selected', x.dataset.voteId === player.id));
+            el.confirmVoteBtn.disabled = false;
+            pulse();
+          });
+          el.voteGrid.appendChild(btn);
+        });
+        el.confirmVoteBtn.disabled = true;
       }
 
       confirmVote(skip = false) {
@@ -441,7 +438,8 @@ const STORAGE_KEY = 'impostor-game-save-v1'
         state.winner = winner
         this.setPhase('results')
         const civils = state.roles.filter(p => p.role === 'civil').length
-        const impostors = state.roles.filter(p => p.role === 'impostor').length
+        const impostors = state.roles.filter(p => p.role === 'impostor')
+        const impostorNames = impostors.map(p => p.name).join(', ')
         const alive = state.roles.filter(p => p.alive)
         el.winnerBadge.className = `badge ${winner === 'civil' ? 'ok' : 'danger'}`
         el.winnerBadge.textContent = winner === 'civil' ? 'Victoria civil' : 'Victoria impostora'
@@ -450,8 +448,9 @@ const STORAGE_KEY = 'impostor-game-save-v1'
         el.resultMessage.textContent = reason
         el.resultDetails.innerHTML = `
           <strong>Concepto:</strong> ${escapeHtml(state.concept.word)}<br>
+          <strong>Impostor${impostors.length > 1 ? 'es' : ''}:</strong> ${impostorNames}<br>
           <strong>Jugadores vivos:</strong> ${alive.map(p => p.name).join(', ') || 'Ninguno'}<br>
-          <strong>Civiles:</strong> ${civils} · <strong>Impostores:</strong> ${impostors}
+          <strong>Civiles:</strong> ${civils} · <strong>Impostores:</strong> ${impostors.length}
         `
         el.resultVoteInfo.textContent = state.voteResultId ? `Última expulsión: ${this.playerNameById(state.voteResultId)}` : 'No hubo expulsión final.'
         pulse(40)
@@ -485,7 +484,10 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       }
     }
 
-    const engine = new GameEngine()
+    const engine = new GameEngine();
+
+// Make engine accessible for debugging
+window.engine = engine;
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"]+/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[s]))
@@ -535,7 +537,17 @@ const STORAGE_KEY = 'impostor-game-save-v1'
     function stopHold() {
       holding = false
       clearTimeout(holdTimer)
-      el.holdZone.classList.remove('active')
+      el.holdZone.classList.remove('revealed')
+      el.roleCardDisplay.innerHTML = ''
+      // Hide the secret info when releasing, but keep "Next player" button enabled
+      const player = state.roles[state.revealIndex]
+      if (player && player.viewed) {
+        // Player already viewed their role - show hidden message
+        el.holdZone.textContent = 'Ya viste tu rol. Presiona "Siguiente jugador" para continuar.'
+      } else if (player) {
+        // Player never completed the hold - restore original message
+        el.holdZone.textContent = 'Mantén presionado para revelar'
+      }
     }
 
     el.addPlayerBtn.addEventListener('click', () => {
@@ -590,7 +602,7 @@ const STORAGE_KEY = 'impostor-game-save-v1'
       event.preventDefault()
       if (holding) return
       holding = true
-      el.holdZone.classList.add('active')
+      el.holdZone.classList.add('revealed')
       holdTimer = setTimeout(() => {
         if (!holding) return
         engine.revealCurrentPlayer()
