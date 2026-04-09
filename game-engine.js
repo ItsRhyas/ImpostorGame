@@ -2,7 +2,7 @@ import { CONCEPTS } from './data.js';
 
 const STORAGE_KEY = 'impostor-game-save-v1';
 const HOLD_MS = 0;
-const INTRO_SECONDS = 30;
+const INTRO_SECONDS = 0;
 
 while (CONCEPTS.length < 200) {
   CONCEPTS.push({
@@ -71,7 +71,6 @@ const state = {
       startingPlayerBadge: document.getElementById('startingPlayerBadge'),
       aliveBadge: document.getElementById('aliveBadge'),
       impostorBadge: document.getElementById('impostorBadge'),
-      currentClue: document.getElementById('currentClue'),
       goVotingBtn: document.getElementById('goVotingBtn'),
       pauseTimerBtn: document.getElementById('pauseTimerBtn'),
       voteGrid: document.getElementById('voteGrid'),
@@ -310,15 +309,13 @@ const state = {
 
       startIntroPhase() {
         this.setPhase('game')
-        state.timer.introActive = true
-        state.timer.active = false
+        state.timer.introActive = false
+        state.timer.active = true
         state.timer.paused = false
         state.startingPlayerId = pickOne(state.players).id
         el.startingPlayerBadge.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)}`
-        el.currentClue.textContent = 'La partida comienza en breve.'
-        el.gamePhaseNotice.textContent = `Preparación: ${INTRO_SECONDS} segundos para que la mesa se organice.`
+        el.gamePhaseNotice.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)} — ¡A jugar!`
         this.updateHUD()
-        this.tickIntro()
         this.startTicker()
       }
 
@@ -328,10 +325,6 @@ const state = {
       }
 
       tick() {
-        if (state.timer.introActive) {
-          this.tickIntro()
-          return
-        }
         if (!state.timer.active || state.timer.paused) return
         state.timer.remaining = Math.max(0, state.timer.remaining - 1)
         this.updateHUD()
@@ -340,19 +333,18 @@ const state = {
         }
       }
 
-      tickIntro() {
-        if (!state.timer.introActive) return
-        if (state.timer.introRemaining <= 0) {
-          state.timer.introActive = false
-          state.timer.active = true
-          el.gamePhaseNotice.textContent = 'Juego activo: discute, investiga y acusa.'
-          el.currentClue.textContent = this.nextClue()
-          this.updateHUD()
-          return
-        }
-        el.gamePhaseNotice.textContent = `Jugador inicial: ${this.playerNameById(state.startingPlayerId)} — empieza en ${state.timer.introRemaining}s`
-        state.timer.introRemaining -= 1
+      startTicker() {
+        clearInterval(state.timer.interval)
+        state.timer.interval = setInterval(() => this.tick(), 1000)
+      }
+
+      tick() {
+        if (!state.timer.active || state.timer.paused) return
+        state.timer.remaining = Math.max(0, state.timer.remaining - 1)
         this.updateHUD()
+        if (state.timer.remaining <= 0) {
+          this.finish('impostor', 'El tiempo se agotó.')
+        }
       }
 
       nextClue() {
@@ -361,8 +353,7 @@ const state = {
       }
 
       updateHUD() {
-        const remaining = state.timer.introActive ? state.timer.introRemaining : state.timer.remaining
-        el.timerRing.textContent = state.timer.introActive ? `${pad(remaining)}s` : formatTime(remaining)
+        el.timerRing.textContent = formatTime(state.timer.remaining)
         const percent = state.timer.total ? ((state.timer.total - state.timer.remaining) / state.timer.total) * 100 : 0
         el.timerRing.style.setProperty('--progress', `${Math.min(100, Math.max(0, percent))}%`)
         el.aliveBadge.textContent = `Vivos: ${state.roles.filter(p => p.alive).length}`
