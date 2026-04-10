@@ -246,3 +246,6 @@
     .summary-grid{display:grid;gap:.75rem}
     .list{margin:0;padding-left:1.2rem;color:var(--muted)}
     .divider{height:1px;background:rgba(255,255,255,.08);margin:.5rem 0}
+#view-config, #view-game, #view-voting, #view-results {
+  align-content: start;
+}
