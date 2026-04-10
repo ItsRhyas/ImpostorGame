@@ -128,8 +128,8 @@
       color:var(--muted);
     }
     .notice strong{color:var(--text)}
-    .view{display:none}
-    .view.active{display:grid}
+.view{display:none}
+.view.active{display:grid;align-content:start}
     .reveal-card,
     .result-card{
       display:grid;
@@ -234,10 +234,7 @@ main {
   width: min(980px, 100%);
   margin: 0 auto;
   padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 1rem;
+  display: block;
 }
 .timer-ring {
   position: relative;
