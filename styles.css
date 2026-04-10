@@ -48,6 +48,8 @@
       padding:1rem;
       display:grid;
       gap:1rem;
+      align-content: start;
+      align-items: start;
     }
     .hero,
     .panel{
@@ -226,6 +228,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  clip-path: circle(50%);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  transform: translateZ(0);
 }
     .timer-meta{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
     .player-chip{
