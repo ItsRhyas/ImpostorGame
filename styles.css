@@ -227,8 +227,6 @@
     .divider{height:1px;background:rgba(255,255,255,.08);margin:.5rem 0}
 #view-config, #view-game, #view-voting, #view-results {
   align-content: start;
-  justify-content: start;
-  height: max-content;
 }
 
 main {
@@ -239,12 +237,7 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start;
   gap: 1rem;
-}
-
-#view-reveal.active {
-  align-self: stretch;
 }
 .timer-ring {
   position: relative;
@@ -257,19 +250,16 @@ main {
   font-weight: 900;
   font-size: 1.5rem;
   border-radius: 50%;
-  background: conic-gradient(var(--accent) var(--progress, 0%), rgba(255,255,255,.08) 0);
-  overflow: hidden;
-  /* Use hardware acceleration to force clipping on mobile */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  clip-path: circle(50%);
-  -webkit-clip-path: circle(50%);
+  background: rgba(255,255,255,.08);
+  box-shadow: inset 0 0 0 8px rgba(9,13,24,.65);
 }
 .timer-ring::before {
   content: "";
   position: absolute;
-  inset: 8px;
+  inset: 0;
   border-radius: 50%;
-  background: #121a31;
-  z-index: 0;
+  background: conic-gradient(var(--accent) var(--progress, 0%), transparent 0);
+  -webkit-mask-image: radial-gradient(transparent 58%, black 59%);
+  mask-image: radial-gradient(transparent 58%, black 59%);
+  pointer-events: none;
 }
