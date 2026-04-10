@@ -41,16 +41,7 @@
     }
     header{top:0;border-bottom:1px solid rgba(255,255,255,.06)}
     footer{bottom:0;border-top:1px solid rgba(255,255,255,.06); color:var(--muted)}
-    main{
-      flex:1;
-      width:min(980px,100%);
-      margin:0 auto;
-      padding:1rem;
-      display:grid;
-      gap:1rem;
-      align-content: start;
-      align-items: start;
-    }
+    
     .hero,
     .panel{
       background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
@@ -212,27 +203,9 @@
       border-color:rgba(124,140,255,.55);
       background:rgba(124,140,255,.1);
     }
-    .timer-ring {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  border: 8px solid rgba(255,255,255,.1);
-  background: conic-gradient(var(--accent) var(--progress, 0%), rgba(255,255,255,.08) 0);
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  box-shadow: inset 0 0 0 8px rgba(9,13,24,.65);
-  font-weight: 900;
-  font-size: 1.5rem;
-  margin: 1rem auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  clip-path: circle(50%);
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  transform: translateZ(0);
-}
+    
+
+
     .timer-meta{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
     .player-chip{
       border:none;
@@ -254,4 +227,39 @@
     .divider{height:1px;background:rgba(255,255,255,.08);margin:.5rem 0}
 #view-config, #view-game, #view-voting, #view-results {
   align-content: start;
+}
+
+main {
+  flex: 1;
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+.timer-ring {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 1rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  box-shadow: inset 0 0 0 8px rgba(9,13,24,.65);
+}
+.timer-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) var(--progress, 0%), transparent 0);
+  -webkit-mask-image: radial-gradient(transparent 58%, black 59%);
+  mask-image: radial-gradient(transparent 58%, black 59%);
+  pointer-events: none;
 }
